@@ -22,7 +22,7 @@ import {
 
 // console.log("Firebase UserId=" + firebaseUserId);
 
-const studyId = 'uci-hri-experiment-1';
+const studyId = 'uci-hri-experiment-1-test2';
 
 // // Example: storing a numeric value
 // // The result of this is stored on the path: "[studyId]/participantData/[firebaseUserId]/trialData/trial1/ResponseTime"
@@ -127,6 +127,7 @@ let difficultySettings = {
         speedHigh: 2.5, // highest end of object speed distribution
         randSeed: 12345},
 };
+
 let currentRound = 1;
 let maxRounds = Object.keys(difficultySettings).length;
 let roundID = "round + " + currentRound;
@@ -137,14 +138,14 @@ writeURLParameters(pathnow);
 
 // Timing variables
 let gameInterval, gameStartTime, elapsedTime;
-let isPaused = false; // flag for pausing the game
-const gameTime = 120000; // Two minutes in milliseconds
-const maxFrames = 120 * 60;//120 * 60; // Two minutes in frames
-let isGameRunning = false;
-// let frameCount = 0;
-let frameCountGame = -1; // MS: number of updates of the scene
-const fps = 60; // Desired logic updates per second
-const updateInterval = 1000 / fps; // How many milliseconds per logic update
+let isPaused            = false; // flag for pausing the game
+const gameTime          = 120000; // Two minutes in milliseconds
+const maxFrames         = 120 * 60;//120 * 60; // Two minutes in frames
+let isGameRunning       = false;
+let frameCountGame      = -1; // MS: number of updates of the scene
+let deltaFrameCount     = 0; // To limit the size of the Event Stream object; 
+const fps               = 60; // Desired logic updates per second
+const updateInterval    = 1000 / fps; // How many milliseconds per logic update
 
 // Data collection variables
 let objects         = [];
@@ -360,15 +361,21 @@ function updateObjects(settings) {
         runGameSequence("This is Round " + currentRound + " of 6 of the Main Experiment. Click to Begin.");
     }
 
-    let newEventObject = {time: frameCountGame, player: {}, objects:{}}; 
-    // append current game condition given the frame
-    newEventObject.time = frameCountGame;
-    newEventObject.player = player;
-    newEventObject.objects = objects;
-
-    eventStream.push(newEventObject);
+    if (deltaFrameCount == 0){
+        let newEventObject      = {time: frameCountGame, player: {}, objects:{}}; 
+        // append current game condition given the frame
+        newEventObject.time     = frameCountGame;
+        newEventObject.player   = player;
+        newEventObject.objects  = objects;
+        eventStream.push(newEventObject);
+    }
+    else if (deltaFrameCount == 10){
+        deltaFrameCount = 0;
+    }
 
     frameCountGame++; // MS: increment scene update count
+    deltaFrameCount++;
+
     //console.log( 'Scene update count: ' + frameCountGame);
 
     // console.log("Current Settings", settings)
