@@ -360,6 +360,9 @@ function updateObjects(settings) {
         console.log("Starting Game");
         runGameSequence("This is Round " + currentRound + " of 6 of the Main Experiment. Click to Begin.");
     }
+    if (deltaFrameCount == 10){
+        deltaFrameCount = 0;
+    }
 
     if (deltaFrameCount == 0){
         let newEventObject      = {time: frameCountGame, player: {}, objects:{}}; 
@@ -369,10 +372,7 @@ function updateObjects(settings) {
         newEventObject.objects  = objects;
         eventStream.push(newEventObject);
     }
-    else if (deltaFrameCount == 10){
-        deltaFrameCount = 0;
-    }
-
+    
     frameCountGame++; // MS: increment scene update count
     deltaFrameCount++;
 
