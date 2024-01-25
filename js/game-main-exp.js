@@ -22,8 +22,25 @@ import {
 
 // console.log("Firebase UserId=" + firebaseUserId);
 
-const studyId = 'uci-hri-experiment-1-pilot2';
+function getDebugParams(){
+    const urlParams = new URLSearchParams(window.location.search);
+    let debugBoolean = Boolean(urlParams.get('debug'));
 
+    // console.log(debugBoolean);
+
+    return debugBoolean;
+}
+
+var DEBUG  = getDebugParams();   // Always start coding in DEBUG mode
+
+let studyId = 'placeHolder';
+
+if (!DEBUG){
+    studyId = 'uci-hri-experiment-1-pilot2';
+} else {
+    studyId = 'uci-hri-experiment-1-pilot2-debug';
+}
+console.log("Study ID: " + studyId);    
 // // Example: storing a numeric value
 // // The result of this is stored on the path: "[studyId]/participantData/[firebaseUserId]/trialData/trial1/ResponseTime"
 

@@ -17,12 +17,30 @@ This file should contain static experimental metadata such as:
 /*
     METADATA
 */
+
+function getDebugParams(){
+    const urlParams = new URLSearchParams(window.location.search);
+    let debugBoolean = Boolean(urlParams.get('debug'));
+
+    // console.log(debugBoolean);
+
+    return debugBoolean;
+}
+
 // DEBUG MODE
-var DEBUG = true;   // Always start coding in DEBUG mode
+var DEBUG = getDebugParams();   // Always start coding in DEBUG mode
+console.log("DEBUG MODE: " + DEBUG);
 
 //      Experiment Name
 var EXPERIMENT_NAME             = "Target Intercept Game";
-var EXPERIMENT_DATABASE_NAME    = "uci-hri-experiment-1-pilot2";    // Make sure to change this to your database name!
+
+// Make sure to change this to your database name!
+if (DEBUG){
+    var EXPERIMENT_DATABASE_NAME    = "uci-hri-experiment-1-pilot2-debug";
+} else {
+    var EXPERIMENT_DATABASE_NAME    = "uci-hri-experiment-1-pilot2";
+}
+    
 
 //      Section Headers
 var SECTION_TITLE_CONSENT_PAGE  = "Consent Page";
