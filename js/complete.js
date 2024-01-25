@@ -95,7 +95,7 @@ $(document).ready(function (){
                 window.location.replace("https://skarny0.github.io/target-intercept-exp-1/");
             } else {
                 // This redirect should be updated to Prolific when you are LIVE
-                window.location.replace("https://app.prolific.com/submissions/complete?cc=CBG9G8QQ");
+                window.location.replace("https://app.prolific.com/submissions/complete?cc=C683JZHM");
             }
         }
     }
