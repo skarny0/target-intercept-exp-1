@@ -22,7 +22,7 @@ import {
 
 // console.log("Firebase UserId=" + firebaseUserId);
 
-const studyId = 'test1';
+const studyId = 'uci-hri-experiment-1';
 
 // // Example: storing a numeric value
 // // The result of this is stored on the path: "[studyId]/participantData/[firebaseUserId]/trialData/trial1/ResponseTime"
@@ -139,7 +139,7 @@ writeURLParameters(pathnow);
 let gameInterval, gameStartTime, elapsedTime;
 let isPaused = false; // flag for pausing the game
 const gameTime = 120000; // Two minutes in milliseconds
-const maxFrames = 10 * 60; // Two minutes in frames
+const maxFrames = 10 * 60;//120 * 60; // Two minutes in frames
 let isGameRunning = false;
 // let frameCount = 0;
 let frameCountGame = -1; // MS: number of updates of the scene

@@ -95,7 +95,7 @@ $(document).ready(function (){
                 window.location.replace("https://madlabatuci.github.io/experiment-template/");
             } else {
                 // This redirect should be updated to Prolific when you are LIVE
-                window.location.replace("https://madlabatuci.github.io/experiment-template/");
+                window.location.replace("https://app.prolific.com/submissions/complete?cc=CBG9G8QQ");
             }
         }
     }

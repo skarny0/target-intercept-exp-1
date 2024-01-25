@@ -42,9 +42,9 @@ import {
             None! This needs to be modified by you!
 */
 var EXPERIMENT_SUMMARY = `
-    You will need to modify the text in here for your experiment.
-    Be sure that the summary you give is short but descriptive!
-    1-3 sentences should be enough :)
+    This experiment tests how people plan and act in quickly changing enviornments. 
+    To test this, we built an arcade-like videogame where your goal is to intercept targets that are moving in a 2D space. 
+    Your goal will be to maximize your score in the limited time alotted in each round. 
 `;
 
 /*
@@ -70,7 +70,7 @@ var TIME_COMMITMENT = "30 minutes";
             There are no direct benefits from your participation in this study.
 */
 var BENEFITS_AND_RISKS = `
-    There are no direct benefits from your participation in this study.
+    There are no direct benefits or risks from your participation in this study.
 `;
 
 /*
@@ -103,7 +103,7 @@ var ELIGIBILITY_REQUIREMENTS = `
         DEFAULT:
             $5.00
 */
-var COMPENSATION = "$5.00";
+var COMPENSATION = "$6.00";
 
 /*
     Recruitment Service

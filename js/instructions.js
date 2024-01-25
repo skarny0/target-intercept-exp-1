@@ -33,7 +33,7 @@ import {
 ******************************************************************************/
 
 // BE SURE TO TURN THIS TO FALSE WHENEVER YOU GO LIVE WITH YOUR EXPERIMENT!!!
-var DEBUG_INSTRUCTIONS          = DEBUG;
+var DEBUG_INSTRUCTIONS          = false;
 
 // Instruction Metadata
 var CURRENT_INSTRUCTION_PAGE    = 1;
