@@ -139,7 +139,7 @@ writeURLParameters(pathnow);
 let gameInterval, gameStartTime, elapsedTime;
 let isPaused = false; // flag for pausing the game
 const gameTime = 120000; // Two minutes in milliseconds
-const maxFrames = 10 * 60;//120 * 60; // Two minutes in frames
+const maxFrames = 120 * 60;//120 * 60; // Two minutes in frames
 let isGameRunning = false;
 // let frameCount = 0;
 let frameCountGame = -1; // MS: number of updates of the scene
