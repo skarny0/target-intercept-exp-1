@@ -29,7 +29,7 @@ import {
         For now we are in DEBUG mode. Turn off DEBUG mode in js/metadata.js.
 ******************************************************************************/
 //      Turn ON/OFF Debug Mode
-var DEBUG_COMPLETE     = DEBUG;
+var DEBUG_COMPLETE     = false;
 
 
 /******************************************************************************
