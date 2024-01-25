@@ -22,7 +22,7 @@ var DEBUG = true;   // Always start coding in DEBUG mode
 
 //      Experiment Name
 var EXPERIMENT_NAME             = "Target Intercept Game";
-var EXPERIMENT_DATABASE_NAME    = "uci-hri-experiment-1-test2";    // Make sure to change this to your database name!
+var EXPERIMENT_DATABASE_NAME    = "uci-hri-experiment-1-pilot2";    // Make sure to change this to your database name!
 
 //      Section Headers
 var SECTION_TITLE_CONSENT_PAGE  = "Consent Page";

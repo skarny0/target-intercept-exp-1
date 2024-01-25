@@ -22,7 +22,7 @@ import {
 
 // console.log("Firebase UserId=" + firebaseUserId);
 
-const studyId = 'uci-hri-experiment-1-test2';
+const studyId = 'uci-hri-experiment-1-pilot2';
 
 // // Example: storing a numeric value
 // // The result of this is stored on the path: "[studyId]/participantData/[firebaseUserId]/trialData/trial1/ResponseTime"
