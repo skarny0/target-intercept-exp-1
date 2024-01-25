@@ -83,7 +83,7 @@ $(document).ready(function (){
         */
         //  Redirect URL for Experiment 02 (explanationstyleN with eplanations file v15) (pilot 10 participants)
         var restart;
-        if (confirm("If you click 'OK', you will be redirected to the start of the experiment. If you click 'Cancel' you will stay on this page.")) {
+        if (confirm("If you click 'OK', you will be redirected to Prolific. If you click 'Cancel' you will stay on this page.")) {
             restart = true;
         } else {
             restart = false;
