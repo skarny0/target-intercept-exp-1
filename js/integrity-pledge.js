@@ -89,6 +89,11 @@ $(document).ready(function (){
 
         // Load Main Experiment
         $('#task-main-content').load('html/game-main-exp.html');
+        // $("#exp-survey-header").attr("hidden", false);
+        // $("#survey-main-content").attr("hidden", false);
+
+        // Show Survey
+        // $('#survey-main-content').load('html/survey.html');
     };
 
     // Integrity Pledge Checkbox

@@ -34,10 +34,10 @@ Everything is in order as it appears in the HTML file (top to bottom).
 *   Topic Options
 **************************************/
 #survey-likert-table-container {
-    margin-bottom: 2rem;
+    margin-bottom: 4rem;
 }
 #survey-likert-legend-header-container {
-    margin-top: 1rem;
+    margin-top: 2rem;
     border-bottom: 2px solid #0064a4;
 }
 /*  Likert Legend - Title Row   */
@@ -76,7 +76,7 @@ Everything is in order as it appears in the HTML file (top to bottom).
 }
 /*  Likert Topic Row    */
 .survey-likert-topic-container {
-    height: 75px;
+    height: 220px;
     /*padding-bottom: 0.5rem;*/
     border-bottom: 2px solid #0064a4;
 }
@@ -138,7 +138,7 @@ Everything is in order as it appears in the HTML file (top to bottom).
     background-color: #5e4fa2;
 }
 /*  Input Radio Button Styling  */
-input[name="Anatomy"] {
+input[name="Mental"] {
     position:relative;
     display: block;
     margin: auto;
@@ -146,7 +146,7 @@ input[name="Anatomy"] {
     width: 100%;
     height: 1.5em
 }
-input[name="Global Facts"] {
+input[name="Physical"] {
     position:relative;
     display: block;
     margin: auto;
@@ -154,7 +154,7 @@ input[name="Global Facts"] {
     width: 100%;
     height: 1.5em
 }
-input[name="High School Chemistry"] {
+input[name="Hurried"] {
     position:relative;
     display: block;
     margin: auto;
@@ -162,7 +162,7 @@ input[name="High School Chemistry"] {
     width: 100%;
     height: 1.5em
 }
-input[name="High School Macroeconomics"] {
+input[name="Success"] {
     position:relative;
     display: block;
     margin: auto;
@@ -170,7 +170,7 @@ input[name="High School Macroeconomics"] {
     width: 100%;
     height: 1.5em
 }
-input[name="High School Physics"] {
+input[name="Hard"] {
     position:relative;
     display: block;
     margin: auto;
@@ -178,7 +178,7 @@ input[name="High School Physics"] {
     width: 100%;
     height: 1.5em
 }
-input[name="High School World History"] {
+input[name="Insecure"] {
     position:relative;
     display: block;
     margin: auto;
@@ -186,39 +186,6 @@ input[name="High School World History"] {
     width: 100%;
     height: 1.5em
 }
-input[name="Machine Learning"] {
-    position:relative;
-    display: block;
-    margin: auto;
-    z-index: 1;
-    width: 100%;
-    height: 1.5em
-}
-input[name="Phyilosophy"] {
-    position:relative;
-    display: block;
-    margin: auto;
-    z-index: 1;
-    width: 100%;
-    height: 1.5em
-}
-input[name="Professional Psychology"] {
-    position:relative;
-    display: block;
-    margin: auto;
-    z-index: 1;
-    width: 100%;
-    height: 1.5em
-}
-input[name="Public Relations"] {
-    position:relative;
-    display: block;
-    margin: auto;
-    z-index: 1;
-    width: 100%;
-    height: 1.5em
-}
-
 
 /**************************************
 *   Row 3

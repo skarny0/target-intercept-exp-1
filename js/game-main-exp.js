@@ -81,67 +81,67 @@ function getDifficultySettingsFromURL() {
 // ***********************EXPERIMENTAL PARAMETERS***************************// 
 
 let difficultySettings = {
-    1: {maxTargets: 5, // MS2: added this parameter to limit total number of targets
+    1: {maxTargets: 3, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1.0,
-        spawnInterval: 10,
+        spawnInterval: 50,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 1.5,
         speedLow:  0.75, // lowest end of object speed distribution
-        speedHigh: 2.5, // highest end of object speed distribution
+        speedHigh: 1.5, // highest end of object speed distribution
         randSeed: 12345},
-    2: {maxTargets: 7, // MS2: added this parameter to limit total number of targets
+    2: {maxTargets: 5, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1,
-        spawnInterval: 10,
+        spawnInterval: 50,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 1.5,
         speedLow:  0.75, // lowest end of object speed distribution
-        speedHigh: 2.5, // highest end of object speed distribution
+        speedHigh: 1.5, // highest end of object speed distribution
         randSeed: 12345},
     // Add more settings for each level
     3: {maxTargets: 9, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1,
-        spawnInterval: 10,
+        spawnInterval: 50,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 1.5,
         speedLow:  0.75, // lowest end of object speed distribution
-        speedHigh: 2.5, // highest end of object speed distribution
+        speedHigh: 1.5, // highest end of object speed distribution
         randSeed: 12345},
-    4: {maxTargets: 5, // MS2: added this parameter to limit total number of targets
+    4: {maxTargets: 3, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1.0,
-        spawnInterval: 10,
+        spawnInterval: 50,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 1.5,
         speedLow:  0.75, // lowest end of object speed distribution
-        speedHigh: 2.5, // highest end of object speed distribution
+        speedHigh: 1.5, // highest end of object speed distribution
         randSeed: 12345},
-    5: {maxTargets: 7, // MS2: added this parameter to limit total number of targets
+    5: {maxTargets: 5, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1,
-        spawnInterval: 10,
+        spawnInterval: 50,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 1.5,
         speedLow:  0.75, // lowest end of object speed distribution
-        speedHigh: 2.5, // highest end of object speed distribution
+        speedHigh: 1.5, // highest end of object speed distribution
         randSeed: 12345},
     // Add more settings for each level
     6: {maxTargets: 9, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1,
-        spawnInterval: 10,
+        spawnInterval: 50,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 1.5,
         speedLow:  0.75, // lowest end of object speed distribution
-        speedHigh: 2.5, // highest end of object speed distribution
+        speedHigh: 1.5, // highest end of object speed distribution
         randSeed: 12345},
 };
 
@@ -157,12 +157,15 @@ writeURLParameters(pathnow);
 let gameInterval, gameStartTime, elapsedTime;
 let isPaused            = false; // flag for pausing the game
 const gameTime          = 120000; // Two minutes in milliseconds
-const maxFrames         = 120 * 60;//120 * 60; // Two minutes in frames
+
 let isGameRunning       = false;
 let frameCountGame      = -1; // MS: number of updates of the scene
 let deltaFrameCount     = 0; // To limit the size of the Event Stream object; 
 const fps               = 60; // Desired logic updates per second
+const maxFrames         = 120 * fps;//120 * 60; // Two minutes in frames
 const updateInterval    = 1000 / fps; // How many milliseconds per logic update
+let firstRender         = 0;
+let roundTime           = 0;
 
 // Data collection variables
 let objects         = [];
@@ -272,12 +275,16 @@ async function endGame(advanceRound = false) {
     let path3 = studyId + '/participantData/' + firebaseUserId + '/round' + currentRound + '/eventStream';
     let path4 = studyId + '/participantData/' + firebaseUserId + '/round' + currentRound + '/playerClicks';
     let path5 = studyId + '/participantData/' + firebaseUserId + '/round' + currentRound + '/playerLocation';
+    let path6 = studyId + '/participantData/' + firebaseUserId + '/round' + currentRound + '/settings';
+    let path7 = studyId + '/participantData/' + firebaseUserId + '/round' + currentRound + '/roundTime';
 
     writeRealtimeDatabase(path1, spawnData);
     writeRealtimeDatabase(path2, caughtTargets);
     writeRealtimeDatabase(path3, eventStream);
     writeRealtimeDatabase(path4, playerClicks);
     writeRealtimeDatabase(path5, playerLocation);
+    writeRealtimeDatabase(path6, settings);
+    writeRealtimeDatabase(path7, roundTime);
 
     if (advanceRound) {
         // round = currentRound;
@@ -293,6 +300,7 @@ async function endGame(advanceRound = false) {
             playerClicks    = [];
             playerLocation  = [];
             score           = 0;    
+            
             player.x        = canvas.width/2;
             player.y        = canvas.height/2;
             player.targetX  = canvas.width/2;
@@ -307,12 +315,17 @@ async function endGame(advanceRound = false) {
             $("#task-header").attr("hidden", true);
             $("#task-main-content").attr("hidden", true);
 
-            //Show the redirect page.
-            $("#exp-complete-header").attr("hidden", false);
-            $("#task-complete").attr("hidden", false);
+            // //Show the redirect page.
+            // $("#exp-complete-header").attr("hidden", false);
+            // $("#task-complete").attr("hidden", false);
 
-            // Experiment Completed
-            $('#task-complete').load('html/complete.html');
+            // // Experiment Completed
+            // $('#task-complete').load('html/complete.html');
+            $("#exp-survey-header").attr("hidden", false);
+            $("#survey-main-content").attr("hidden", false);
+
+            // Show Survey
+            $('#survey-main-content').load('html/survey.html');
             
             return;
         }
@@ -321,7 +334,11 @@ async function endGame(advanceRound = false) {
 
 function gameLoop(timestamp) {
     if (!isGameRunning) return;
-    // frameCountGame++;
+
+    if (frameCountGame==0){
+        firstRender = Date.now();
+    }
+
     if (frameCountGame >= maxFrames) {
         endGame(true);
         console.log("Game Over!", frameCountGame);
@@ -329,8 +346,7 @@ function gameLoop(timestamp) {
     }
 
     elapsedTime = Date.now() - gameStartTime;
-
-    //frameCountGame++;
+    roundTime = Date.now() - firstRender;
 
     // console.log('Running game loop at frame count', frameCount);
     // console.log('Time since running:', now - gameStartTime);
@@ -382,16 +398,17 @@ function updateObjects(settings) {
     }
 
     if (deltaFrameCount == 0){
-        let newEventObject      = {time: frameCountGame, player: {}, objects:{}}; 
+        let newEventObject      = {frame: frameCountGame, time: elapsedTime, player: {}, objects:{}}; 
         // append current game condition given the frame
-        newEventObject.time     = frameCountGame;
+        // newEventObject.time     = frameCountGame;
         newEventObject.player   = player;
         newEventObject.objects  = objects;
+        
         eventStream.push(newEventObject);
     }
     
     frameCountGame++; // MS: increment scene update count
-    deltaFrameCount++;
+    deltaFrameCount++; // limit the amount of data pushes
 
     //console.log( 'Scene update count: ' + frameCountGame);
 
@@ -419,7 +436,7 @@ function updateObjects(settings) {
 
             console.log("Player Speed", player.velocity);
 
-            playerLocation.push({time: frameCountGame, x: player.x, y: player.y});
+            playerLocation.push({frame: frameCountGame, x: player.x, y: player.y});
         }
     }
 
@@ -950,7 +967,7 @@ $(document).ready( function(){
             player.angle = Math.atan2(deltaY, deltaX);
             player.moving = true;
 
-            playerClicks.push({time: frameCountGame, targetX: clickX, targetY: clickY, curX: player.x, curY: player.y, angle:player.angle});
+            playerClicks.push({frame: frameCountGame, targetX: clickX, targetY: clickY, curX: player.x, curY: player.y, angle:player.angle});
         //}
     });
 

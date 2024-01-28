@@ -33,16 +33,12 @@ var DEBUG_SURVEY                    = DEBUG;
 
 //      Survey Information
 var TOPIC_ABILITY_DICT = {
-    "Anatomy"                       : null,
-    "Global Facts"                  : null,
-    "High School Chemistry"         : null,
-    "High School Macroeconomics"    : null,
-    "High School Physics"           : null,
-    "High School World Histroy"     : null,
-    "Machine Learning"              : null,
-    "Philosophy"                    : null,
-    "Professional Psychology"       : null,
-    "Public Relations"              : null
+    "Mental"                       : null,
+    "Physical"                     : null,
+    "Hurried"                      : null,
+    "Success"                      : null,
+    "Hard"                         : null,
+    "Insecure"                     : null
 };
 var TOPICS_RANKED                   = 0;
 
@@ -89,7 +85,7 @@ $(document).ready(function (){
         // Set selection variable
         TOPIC_ABILITY_DICT[topic_currently_ranked] = Number($(this).val());
 
-        if (TOPICS_RANKED == 10) {
+        if (TOPICS_RANKED == 6) {
             // Enable "Submit" button
             $('#survey-complete-button').prop('disabled', false);
         }
