@@ -1,26 +1,4 @@
-/*
-game.js
-
-    Author      :   Sheer Karny, Mark Steyvers
-    University  :   University of California, Irvine
-    Lab         :   Modeling and Decision-Making Lab (MADLAB)
-
-
-Game Page JS file (metadata and functionality).
-
-This file should contain all variables and functions needed for
-the game.
-*/
-
-
-//******************************META VARIABLES **********************************//
-let understandingCheckPassed = false;
-let understandingCheckFailed = false;
-let passCounter              = 0; 
-let failedCounter            = 0;
-let highValueTargetCaught    = false;
-
-// //**************************FIREBASE FUNCTIONALITY****************************//
+//**************************FIREBASE FUNCTIONALITY****************************//
 // /// Importing functions and variables from the Firebase Psych library
 import { 
     writeRealtimeDatabase,writeURLParameters,readRealtimeDatabase,
@@ -49,7 +27,7 @@ function lcg(seed) {
   }
   
   // Initialize with a seed
-  const randomGenerator = lcg(54321);
+  const randomGenerator = lcg(12345);
 
 //let randomValue1 = randomGenerator();
 
@@ -64,29 +42,27 @@ const world = { width: 800, height: 800 };
 const center = { x: canvas.width / 2, y: canvas.height / 2 };
 let observableRadius = 390; // Radius for positioning objects
 
-let settings = {spawnProbability: .1,
-                spawnInterval:10,
-                numSpawnLocations: 10,
-                valueSkew:1,
-                valueLow: 0,
-                valueHigh: 1,
-                playerSpeed: 1.5,
-                speedLow:  0.5, // lowest end of object speed distribution
-                speedHigh: 1.5 // highest end of object speed distribution
-};
+let numDecimals = 5;
+
+let settings = {};
 
 function getDifficultySettingsFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     let settings = {
-        spawnProbability: parseFloat(urlParams.get('spawnProbability')) || .1,
-        spawnInterval: parseInt(urlParams.get('spawnInterval'), 10) || 10,
-        numSpawnLocations: parseInt(urlParams.get('numSpawnLocations'), 10) || 10,
+        AIMode: parseInt(urlParams.get('maxTargets'), 10) || 1, // MS4: 0=no assistance; 1=always on; 2=adaptive
+        planNumFramesAhead: parseInt(urlParams.get('maxTargets'), 10) || 5, // MS4: plan solution for display a certain number of frames ahead (to allow human response time) 
+        AIDisplayMode: parseInt(urlParams.get('maxTargets'), 10) || 1, // MS4: 0=show movement path; 1=show where to click; 2=show which targets to intercept 
+        AIMaxDisplayLength: parseInt(urlParams.get('maxTargets'), 10) || 3, // MS4: can be used to truncate the AI path length shown
+        visualizeAIPlayer: parseInt(urlParams.get('maxTargets'), 10) || 0, // MS5: 0:default; 1=visualize AI player running in background
+        maxTargets: parseInt(urlParams.get('maxTargets'), 10) || 4, // MS2: added this parameter to limit total number of targets
+        spawnProbability: parseFloat(urlParams.get('spawnProbability')) || 1.0,
+        spawnInterval: parseInt(urlParams.get('spawnInterval'), 10) || 20,
         valueSkew: parseFloat(urlParams.get('valueSkew')) || 1,
         valueLow: parseFloat(urlParams.get('valueLow')) ||0,
         valueHigh: parseFloat(urlParams.get('valueHigh')) || 1,
-        playerSpeed: parseFloat(urlParams.get('playerSpeed'),10) || 1.5,
-        speedLow: parseFloat(urlParams.get('speedLow'),10) || 0.5, // lowest end of object speed distribution
-        speedHigh: parseFloat(urlParams.get('speedHigh'),10) || 1.5 // highest end of object speed distribution
+        playerSpeed: parseFloat(urlParams.get('playerSpeed')) || 1.5,
+        speedLow: parseFloat(urlParams.get('speedLow')) || 0.75, // lowest end of object speed distribution
+        speedHigh: parseFloat(urlParams.get('speedHigh')) || 2.5 // highest end of object speed distribution
     };
     return settings;
 }
@@ -95,14 +71,12 @@ function getDifficultySettingsFromURL() {
 
 // Timing variables
 let gameInterval, gameStartTime, elapsedTime;
-let isPaused = false; // flag for pausing the game
-const gameTime = 30000; // Two minutes in milliseconds
+const gameTime = 120000; // Two minutes in milliseconds
 let isGameRunning = false;
 let frameCount = 0;
 let frameCountGame = -1; // MS: number of updates of the scene
 const fps = 60; // Desired logic updates per second
 const updateInterval = 1000 / fps; // How many milliseconds per logic update
-const maxFrames = 30*fps; // maximum number of frames to run the game
 
 // Data collection variables
 let objects = [];
@@ -123,8 +97,8 @@ let score = 0;
 const playerSize = 50;
 const player = {
     color:"red", 
-    x: canvas.width/2 , //center the x,y in the center of the player.
-    y: canvas.height/2 ,
+    x: canvas.width/2 - playerSize/2, //center the x,y in the center of the player.
+    y: canvas.height/2 - playerSize/2,
     moving:false,
     targetX:0,
     targetY:0,
@@ -154,12 +128,34 @@ let spawnLocations= [];
 // };
 
 
+// MS4: ******************************* AI PLANNER ********************************
+//testCase();
+let sol; // MS4: global variable that contains planned path for current frame
+
+// MS5
+const AIplayerSize = 50;
+const AIplayer = {
+    color:'rgba(255, 0, 0, 0.5)', 
+    x: canvas.width/2 - playerSize/2, //center the x,y in the center of the player.
+    y: canvas.height/2 - playerSize/2,
+    moving:false,
+    targetX:0,
+    targetY:0,
+    velocity: 1.5,
+    angle:0,
+    speed: 1.5, 
+    width:50, 
+    height:50,
+};
+let AIcaughtTargets = [];
+let AIplayerLocation = [];
+
 // Initialization code for starting page
-//initializeStartingPage();
+initializeStartingPage();
 // Start Game function
 function startGame(round) {
     currentRound = round || currentRound; // Start at the specified round, or the current round
-    // settings = getDifficultySettingsFromURL();
+    settings = getDifficultySettingsFromURL();
     // settings = difficultySettings[currentRound];
 
     // console.log("start game settings", settings);
@@ -168,88 +164,94 @@ function startGame(round) {
     const gameCanvas = document.getElementById('gameCanvas');
     gameCanvas.style.display = 'block';
 
+    // Hide the graph canvas
+    const graphCanvas = document.getElementById('missedTargetsGraph');
+    graphCanvas.style.display = 'none';
+
     if (!isGameRunning) {
         setupCanvas();
-        gameStartTime   = Date.now();
-        frameCountGame  = -1;
-        isGameRunning   = true;
+        
+        // MS: commented out the next line as we are changing the generative process
+        //setSpawnLocations(settings);
+
+        // MS: commented out next line as in the new code, spawnObject will be called at the first call for updateObjects
+        //spawnObject(settings); // Initialize objects with difficulty settings
+        gameStartTime = Date.now();
+        //gameInterval = setInterval(() => endGame(true), gameTime); // Pass a flag if the game ends naturally
+        isGameRunning = true;
         gameLoop();
         // console.log('Settings being passed into gameLoop', settings);
     }
 }
-startGame();
 
 // End Game function
-async function endGame(advanceRound = false) {
+function endGame(advanceRound = false) {
     isGameRunning = false;
-
-    // console.log("Game Over!");
+    // console.log(gameTime); // Add this line
+    clearInterval(gameInterval);
+    console.log("Game Over!");
 
     // Additional end-game logic here
-    // const gameCanvas = document.getElementById('gameCanvas');
-    // gameCanvas.style.display = 'none';
-    // scoreCanvas.style.display = 'none';
-    // console.log("Successfully Spawned Objects", spawnData);
-    // console.log("Intercepted Targets", caughtTargets);  
-    // console.log("Player Clicks Location", playerClicks);
-    // console.log("Player Locations During Movement", playerLocation);
+    const gameCanvas = document.getElementById('gameCanvas');
+    gameCanvas.style.display = 'none';
+    console.log("Successfully Spawned Objects", spawnData);
+    console.log("Intercepted Targets", caughtTargets);  
+    console.log("Player Clicks Location", playerClicks);
+    console.log("Player Locations During Movement", playerLocation);
 
-       
     let path1 = studyId + '/participantData/' + firebaseUserId + '/spawnData';
     let path2 = studyId + '/participantData/' + firebaseUserId + '/caughtTargets';
     let path3 = studyId + '/participantData/' + firebaseUserId + '/playerClicks';
     let path4 = studyId + '/participantData/' + firebaseUserId + '/playerLocation';
 
+    let path5 = studyId + '/participantData/' + firebaseUserId + '/AIcaughtTargets'; // MS5
+
     // writeRealtimeDatabase(path1, spawnData);
     // writeRealtimeDatabase(path2, caughtTargets);
     // writeRealtimeDatabase(path3, playerClicks);
     // writeRealtimeDatabase(path4, playerLocation);
+    // writeRealtimeDatabase(path4, AIcaughtTargets); // MS5
 
-    if (understandingCheckPassed){
-        await runGameSequence("Passed the Comprehension Check. Moving on to the Integrity Pledge and Main Experiment");
-        $('#comprehension-quiz-main-content').load('html/integrity-pledge.html');
-        // console.log("Moving on to the integrity pledge and then the full game");
-    }
-    else{
-        await runGameSequence("Failed the Comprehension Check. Restarting the Game.");
-
+    if (advanceRound) {
+        currentRound++;
         objects = []; // Reset the objects array
         spawnData = [];
         caughtTargets = [];
         playerClicks = [];
         playerLocation = [];
-        score = 0;
-        startGame(currentRound);
+
+        AIplayerLocation = []; // MS5
+        AIcaughtTargets = []; // MS5
+
+        if (currentRound <= Object.keys(difficultySettings).length) {
+            console.log("Starting next round", currentRound);
+            
+            objects = []; // Reset the objects array
+            player.x, player.y = canvas.width/2 - playerSize/2; // Reset the player position
+            AIplayer.x, AIplayer.y = canvas.width/2 - playerSize/2; // MS5: Reset the player position
+            startGame(currentRound); // Start the next round
+        } else {
+            // Game complete, show results or restart
+            console.log("Game complete");
+        }
     }
+    
+    // Hide the sliders and robot image
+    document.getElementById('sliderContainer').style.display = 'none';
+    document.getElementById('robotContainer').style.display = 'none';
+
 }
 
 function gameLoop(timestamp) {
     if (!isGameRunning) return;
-    if (frameCountGame >= maxFrames) {
-        endGame(true);
-        // console.log("Game Over!", frameCountGame);
-        //return;
-    }
 
     elapsedTime = Date.now() - gameStartTime;
 
-    if (score >= 30){
-        understandingCheckPassed = true;
-        endGame(true);
-        //return;
-    }
-
-    // if (elapsedTime >= gameTime || understandingCheckPassed) {
-    //     endGame(true);
-    //     return;
-    // }
-    // if (elapsedTime >= gameTime && !understandingCheckPassed){
-    //     understandingCheckPassed    =   false;
-    //     objects                     =   [];
-    //     startGame(currentRound);
-    //     return;
-    // }
-    //
+    //if (elapsedTime >= gameTime) {
+    //    endGame(true);
+    //    return;
+    //}
+    frameCount++;
 
     // console.log('Running game loop at frame count', frameCount);
     // console.log('Time since running:', now - gameStartTime);
@@ -276,25 +278,24 @@ function render() {
     ctx.save();
     // ctx.translate(-canvas.width / 2 + player.x, -canvas.height / 2 + player.y);
     drawWorldBoundary();    // Draw boundaries
+    
     drawPlayer();
-    if (player.moving) drawArrowDirection();     // Draw arrow direction
+    if (settings.visualizeAIPlayer==1) { // MS5
+        drawAIPlayer();
+    }
+    drawArrowDirection();   // Draw arrow direction
+    drawAISolution(); // MS4: draw the path suggested by AI
     drawTargetLocation();   // Draw target location
     // drawCursor(mouseX, mouseY); // Draw cursor
     drawObjects();          // Draw objects
+    
     ctx.restore();
-    drawScore();            // Draw score
+    // drawScore();            // Draw score
 }
+
 
 // Update game objects
 function updateObjects(settings) {
-    if (isPaused){
-        // console.log("Game is paused");
-        return;
-    } 
-    if (frameCountGame == -1) {
-        console.log("Starting Game");
-        runGameSequence("First, Read The Instructions Carefully. After, Click OK to Begin This Task.");
-    }
 
     frameCountGame++; // MS: increment scene update count
     //console.log( 'Scene update count: ' + frameCountGame);
@@ -302,14 +303,12 @@ function updateObjects(settings) {
     // console.log("Current Settings", settings)
     // console.log('Updating objects');
 
-    player.velocity = settings.playerSpeed;
- 
     // Update player position if it is moving
+    player.velocity = settings.playerSpeed;
     if (player.moving) {
         const deltaX = player.targetX - player.x;
         const deltaY = player.targetY - player.y;
         const distanceToTarget = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
         if (distanceToTarget < player.velocity) {
             // Player has arrived at the target location
             player.x = player.targetX;
@@ -320,22 +319,45 @@ function updateObjects(settings) {
             player.angle = Math.atan2(deltaY, deltaX);
             player.x += player.velocity * Math.cos(player.angle);
             player.y += player.velocity * Math.sin(player.angle);
-
-            // console.log("Player Speed", player.velocity);
-
-            playerLocation.push({time: frameCount, x: player.x, y: player.y});
+            playerLocation.push({time: frameCountGame, x: player.x, y: player.y}); // MS4: check if this line is correct in the new code?????
         }
     }
-
-    // Prevent player from moving off-screen
-    player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.x));
+    player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.x)); // Prevent player from moving off-screen
     player.y = Math.max(player.height / 2, Math.min(canvas.height - player.height / 2, player.y));
+    
+    // MS5: Update AI player position if it is moving
+    AIplayer.velocity = settings.playerSpeed;
+    //if (AIplayer.moving) {
+        const deltaX = AIplayer.targetX - AIplayer.x;
+        const deltaY = AIplayer.targetY - AIplayer.y;
+        const distanceToTarget = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (distanceToTarget < AIplayer.velocity) {
+            // AI Player has arrived at the target location
+            AIplayer.x = AIplayer.targetX;
+            AIplayer.y = AIplayer.targetY;
+            AIplayer.moving = false;
+        } else {
+            // Move player towards the target
+            AIplayer.angle = Math.atan2(deltaY, deltaX);
+            AIplayer.x += AIplayer.velocity * Math.cos(AIplayer.angle);
+            AIplayer.y += AIplayer.velocity * Math.sin(AIplayer.angle);
+            AIplayer.moving = true;
+            AIplayerLocation.push({time: frameCountGame, x: AIplayer.x, y: AIplayer.y});
+        }
+    //}
+    //AIplayer.x = Math.max(AIplayer.width / 2, Math.min(canvas.width - player.width / 2, AIplayer.x)); // Prevent player from moving off-screen
+    //AIplayer.y = Math.max(AIplayer.height / 2, Math.min(canvas.height - player.height / 2, AIplayer.y));
 
-    // MS: and inserted the following code
+
     if (frameCountGame % settings.spawnInterval === 0) {
         spawnObject(settings);    
     }
 
+    if (frameCountGame % 1000 === 0) {
+        console.log( 'test');    
+    }
+    
+    let toRemove = []; // MS4: fixing the splice line that could introduce bugs
     objects.forEach((obj, index) => {
         if (obj.active) {
             obj.x += obj.vx * obj.speed; // Update x position
@@ -348,84 +370,100 @@ function updateObjects(settings) {
             let distanceFromCenter = Math.sqrt(dx * dx + dy * dy) - 10;
 
             if (distanceFromCenter > observableRadius) {
-                // console.log("Object is outside observable area");
+                //console.log("Object is outside observable area"); 
                 obj.active = false; // Set the object to inactive
-                objects.splice(index, 1); // Remove the object from the array
-                //spawnObject(settings); // Spawn a new object
+                toRemove.push( index ); // MS4: push this index to the list of removes
+                //objects.splice(index, 1); // MS4: remove this line !!!!!!!!!!!!!!!!!!!!!!!
             }
 
-            if (checkCollision(player, obj)) {
+            if (!obj.intercepted && checkCollision(player, obj)) { // MS2: added a condition
                 // Collision detected
-                score += obj.value;
-                obj.active = false;
-                objects.splice(index, 1); // Remove the object from the array
-                // console.log("Collision detected!");
-                // spawnObject(settings); // Spawn a new object
+                //obj.active = false; // MS2: commented out this line
+                //objects.splice(index, 1); // MS2: commented out this line
+                obj.intercepted = true; // MS2: added this flag
+                
+                //console.log("Collision detected!");
                 caughtTargets.push(obj);
             }
-        }
-        
-        //spawnObject(settings); // MS: I don't understand why this function was called within this loop over targets; this be called outside of this loop???
 
+            if (!obj.AIintercepted && checkCollision(AIplayer, obj)) { // MS5: added a condition
+                // Collision detected
+                obj.AIintercepted = true; // MS2: added this flag             
+                //console.log("AI Collision detected!");
+                AIcaughtTargets.push(obj);
+            }
+        }
+
+        
         // Add to missed array iff : 1) Not Active, 2) Not Tagged, 3) Correct Target Shape.
-        if (!obj.active && obj.objType === 'target') {
+        if (!obj.active && obj.objType === 'target' && !obj.intercepted) { // MS2: added a condition
             // Log missed triangle
             missedTargets.push({ x: obj.x, y: obj.y, time:frameCount});
 
             // Calls a function cascade to display a message "Target Missed!"
             targetMissed();
         }
+
     });
+
+    // MS4: Remove items starting from the end
+    for (let i = toRemove.length - 1; i >= 0; i--) {
+       objects.splice(toRemove[i], 1);
+    }
+
+    // MS4: Run AI planner
+    if (settings.AIMode>0) {
+        // MS5: Run planner for the AI player
+        sol = runAIPlanner( objects, AIplayer , observableRadius , center, 0, 'AI' );
+        AIplayer.targetX = sol.interceptLocations[0][0]; // Set target position for the AI player
+        AIplayer.targetY = sol.interceptLocations[0][1]; 
+
+        // MS4
+        //console.time('functionExecutionTime');
+        sol = runAIPlanner( objects, player , observableRadius , center, settings.planNumFramesAhead , 'human' ); 
+        //console.timeEnd('functionExecutionTime');
+        //console.log( 'Calculated AI path');   
+    }
+}
+
+
+function myRound(value,decimals) {
+    return +(Math.round(value+ "e+5")  + "e-5");
 }
 
 function spawnObject(settings){
-    // console.log("number of spawning locations : ",settings.numSpawnLocations);
-    // console.log("value type of spawning locations : ", typeof(settings.numSpawnLocations));
 
-    // MS: commenting out loop
-    //spawnLocations.forEach(location => { 
-        //let randomThreshold = Math.random();
-        let randomThreshold = randomGenerator();
-
-        // console.log("Current Location Being Assessed:", location); 
-
-        // only attempt a spawn if the elapsed time is greater than the spawn interval
-        // MS: I commented out the next conditiona; as we don't need it any longer
-        //if (elapsedTime - location.lastSpawnTime >= settings.spawnInterval) {    
-            if (randomThreshold < settings.spawnProbability){
-                // console.log("Spawn Threshold Met");
-                let newObject = createComposite(settings);
-                // assign the object to a random spawn location
-                // console.log("Spawn Location Data:", location);
-                
-                // MS: Generate a random angle between 0 and 2π (0 and 360 degrees)
-                //let angle = Math.random() * 2 * Math.PI;
-                let angle = randomGenerator() * 2 * Math.PI;
-
-
-                // get x,y coordinates
-                let curXLoc = center.x + observableRadius * Math.cos(angle); // - obj.width / 2;
-                let curYLoc = center.y + observableRadius * Math.sin(angle); // - obj.height / 2;
-                let location = {x:curXLoc, y:curYLoc, angle:angle, lastSpawnTime:0};
-
-
-                // works good enough for now
-                newObject.x = location.x ;
-                newObject.y = location.y ;
-
-                newObject.spawnX = location.x;
-                newObject.spawnY = location.y;
+    let numObjectsTotal = objects.length; // MS2: count total number of objects (intercepted objects also count)
+    
+    let randomThreshold = randomGenerator();
+    if (randomThreshold < settings.spawnProbability && numObjectsTotal < settings.maxTargets) { // MS2: added this condition
+        //console.log("Spawn Threshold Met");
+        let newObject = createComposite(settings);
         
-                setVelocityTowardsObservableArea(newObject);
+        // MS: Generate a random angle between 0 and 2π (0 and 360 degrees)
+        let angle = randomGenerator() * 2 * Math.PI;
         
-                // push to objects array in order to render and update
-                objects.push(newObject);
-                // console.log("New Object Spawned", newObject);
-                spawnData.push(newObject)
-            }
-            location.lastSpawnTime = elapsedTime;
-        //}
-    //});
+        // get x,y coordinates
+        let curXLoc = center.x + observableRadius * Math.cos(angle); // - obj.width / 2;
+        let curYLoc = center.y + observableRadius * Math.sin(angle); // - obj.height / 2;
+        //curXLoc = myRound( curXLoc, numDecimals ); // MS3 modification
+        //curYLoc = myRound( curYLoc, numDecimals ); // MS3 modification
+        let location = {x:curXLoc, y:curYLoc, angle:angle, lastSpawnTime:0};
+
+        // works good enough for now
+        newObject.x = location.x ;
+        newObject.y = location.y ;
+        newObject.spawnX = location.x;
+        newObject.spawnY = location.y;
+        setVelocityTowardsObservableArea(newObject);
+
+        // push to objects array in order to render and update
+        objects.push(newObject);
+        //console.log("New Object Spawned", newObject);
+        spawnData.push(newObject)
+
+    }
+    location.lastSpawnTime = elapsedTime;
 }
 
 function createComposite(settings) {
@@ -456,6 +494,7 @@ function createComposite(settings) {
      let speedRange = settings.speedHigh - settings.speedLow
      //let speedSample = Math.random() * speedRange + settings.speedLow;
      let speedSample = randomGenerator()  * speedRange + settings.speedLow;
+    //speedSample = myRound( speedSample , numDecimals); //MS3 modification
 
     let newObj = {
         ID: frameCount ,
@@ -467,14 +506,16 @@ function createComposite(settings) {
         vy: 0,
         velAngle: 0, // initial velocity angle is zero --> reset in the setVelocityTowardsObservableArea
         size: shapeSize,
-        outerColor: 'blue',
-        innerColor: 'orange',
+        //outerColor: 'LightGrey', // MS2: by changing the blue to lightgrey, we can simply tell subjects that larger objects get more points
+        outerColor: 'blue', // MS2: by changing the blue to lightgrey, we can simply tell subjects that larger objects get more points
+        innerColor: 'orange',        
         shape: shapeType, // Add shape type here
         type: 'target',
         //angle: shapeRotation,
         fill: fillRadius,
-        value: Math.floor(fillRadius),
         active: true,
+        intercepted: false, // MS2: Added this flag
+        AIintercepted: false, // MS5: Added this flag
         spawnX: 0,
         spawnY: 0
     };
@@ -497,7 +538,10 @@ function setVelocityTowardsObservableArea(obj) {
     // Set velocity based on the angle within the cone
     obj.vx = Math.cos(randomAngleWithinCone);
     obj.vy = Math.sin(randomAngleWithinCone);
-    // console.log(`Initial Velocity for object: vx = ${obj.vx}, vy = ${obj.vy}`);
+    //obj.vx = myRound( obj.vx, numDecimals); // MS3
+    //obj.vy = myRound( obj.vy, numDecimals); // MS3
+
+    //console.log(`Initial Velocity for object: vx = ${obj.vx}, vy = ${obj.vy}`);
 }
 
 // Choose one function
@@ -581,6 +625,8 @@ function setupCanvas() {
     // Define the game world area with a white rectangle (or any other color your game uses)
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, world.width, world.height);
+
+    ctx.font = '20px Arial'; // MS4: Font size and style for the text
 }
 
 function drawWorldBoundary() {
@@ -596,15 +642,34 @@ function drawPlayer() {
     ctx.fillRect(topLeftX, topLeftY, player.width, player.height);
 }
 
+// MS5
+function drawAIPlayer() {
+    let topLeftX = AIplayer.x - AIplayer.width / 2;
+    let topLeftY = AIplayer.y - AIplayer.height / 2;
+
+    ctx.fillStyle = AIplayer.color;
+    //ctx.strokeStyle = player.color;
+    ctx.fillRect(topLeftX, topLeftY, player.width, player.height);
+}
+
 // Function to draw objects
 function drawObjects() {
     objects.forEach(obj => {
         if (obj.active) {
-            drawCompositeShape(obj);
+            if (!obj.intercepted) drawCompositeShape(obj); // MS2: added this condition
+            if ((obj.AIintercepted) && (settings.visualizeAIPlayer==1)) drawCompositeShapeAI(obj); // MS5: added this; can be removed once code is tested
             //drawDebugBounds(obj);
-            // drawVelocityVector(obj);
         }
     });
+}
+
+// MS5: added this function just for debugging; it shows when AI player has intercepted target
+function drawCompositeShapeAI(obj) {
+    // Draw the outer circle first
+    drawCircle(obj.x, obj.y, obj.size, 'LightGrey' ); // Outer circle
+
+    // Then draw the inner circle on top
+    drawCircle(obj.x, obj.y, obj.fill, 'gray' ); // Inner circle, smaller radius
 }
 
 function drawCompositeShape(obj) {
@@ -622,37 +687,6 @@ function drawCircle(centerX, centerY, radius, color) {
     ctx.fillStyle = color;
     ctx.fill();
     ctx.restore();
-}
-
-function drawVelocityVector(obj) {
-    if (isWithinCanvas(obj)) {
-        const velocityScale = 1000; // Adjust this value to scale the velocity vector length
-        const arrowSize = 5; // Size of the arrowhead
-
-        // Calculate the end point of the velocity vector
-        const endX = obj.x + obj.vx * obj.speed * velocityScale;
-        const endY = obj.y + obj.vy * obj.speed * velocityScale;
-
-        // Draw the line for the velocity vector
-        ctx.beginPath();
-        ctx.moveTo(obj.x, obj.y);
-        ctx.lineTo(endX, endY);
-        ctx.strokeStyle = 'blue'; // Color of the velocity vector
-        ctx.stroke();
-
-        // Optionally, draw an arrowhead at the end of the velocity vector
-        ctx.beginPath();
-        ctx.moveTo(endX, endY);
-        ctx.lineTo(endX - arrowSize, endY + arrowSize);
-        ctx.lineTo(endX + arrowSize, endY + arrowSize);
-        ctx.lineTo(endX, endY);
-        ctx.fillStyle = 'blue';
-        ctx.fill();
-    }
-}
-
-function isWithinCanvas(obj) {
-    return obj.x >= 0 && obj.x <= canvas.width && obj.y >= 0 && obj.y <= canvas.height;
 }
 
 function drawDebugBounds(obj) {
@@ -705,42 +739,45 @@ function drawMask(ctx) {
 
 // Function to where the player is heading
 function drawArrowDirection() {
-    // Define the radial distance from the player
-    let radialDistance = 60; // Adjust this value as needed
-
-    // Player dimensions (assuming square for simplicity)
-    let playerWidth = 50; // Replace with actual player width
-    let playerHeight = 50; // Replace with actual player height
-
-  
-    // Calculate the arrow's position around the player center
-    let arrowCenterX = player.x + radialDistance * Math.cos(player.angle);
-    let arrowCenterY = player.y + radialDistance * Math.sin(player.angle);
-
-    // Define the size of the arrow
-    let arrowLength = 20;
-    let arrowWidth = 10;
-
-    // Calculate the end point of the arrow
-    let endX = arrowCenterX + arrowLength * Math.cos(player.angle);
-    let endY = arrowCenterY + arrowLength * Math.sin(player.angle);
-
-    // Calculate the points for the base of the arrow
-    let baseX1 = arrowCenterX + arrowWidth * Math.cos(player.angle - Math.PI / 2);
-    let baseY1 = arrowCenterY + arrowWidth * Math.sin(player.angle - Math.PI / 2);
-    let baseX2 = arrowCenterX + arrowWidth * Math.cos(player.angle + Math.PI / 2);
-    let baseY2 = arrowCenterY + arrowWidth * Math.sin(player.angle + Math.PI / 2);
-
-    // Draw the arrow
-    ctx.save();
-    ctx.fillStyle = 'red';
-    ctx.beginPath();
-    ctx.moveTo(baseX1, baseY1);
-    ctx.lineTo(endX, endY);
-    ctx.lineTo(baseX2, baseY2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
+    if (player.moving == true) { // MS4: don't think we need to show direction when player has stopped
+        // Define the radial distance from the player
+        let radialDistance = 60; // Adjust this value as needed
+    
+        // Player dimensions (assuming square for simplicity)
+        let playerWidth = 50; // Replace with actual player width
+        let playerHeight = 50; // Replace with actual player height
+    
+      
+        // Calculate the arrow's position around the player center
+        let arrowCenterX = player.x + radialDistance * Math.cos(player.angle);
+        let arrowCenterY = player.y + radialDistance * Math.sin(player.angle);
+    
+        // Define the size of the arrow
+        let arrowLength = 20;
+        let arrowWidth = 10;
+    
+        // Calculate the end point of the arrow
+        let endX = arrowCenterX + arrowLength * Math.cos(player.angle);
+        let endY = arrowCenterY + arrowLength * Math.sin(player.angle);
+    
+        // Calculate the points for the base of the arrow
+        let baseX1 = arrowCenterX + arrowWidth * Math.cos(player.angle - Math.PI / 2);
+        let baseY1 = arrowCenterY + arrowWidth * Math.sin(player.angle - Math.PI / 2);
+        let baseX2 = arrowCenterX + arrowWidth * Math.cos(player.angle + Math.PI / 2);
+        let baseY2 = arrowCenterY + arrowWidth * Math.sin(player.angle + Math.PI / 2);
+    
+        // Draw the arrow
+        ctx.save();
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.moveTo(baseX1, baseY1);
+        ctx.lineTo(endX, endY);
+        ctx.lineTo(baseX2, baseY2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+    
 }
 
 function drawTargetLocation() {
@@ -756,6 +793,124 @@ function drawTargetLocation() {
     ctx.stroke();
     ctx.restore();
 }
+
+// MS4: draw the path suggested by AI planner
+function drawAISolution() {
+    if ((settings.AIMode>0) && (sol != null)) {
+        // get the length of the suggested path
+        let pathLength = Math.min( sol.interceptLocations.length, settings.AIMaxDisplayLength );
+        if (pathLength > 0) {
+            if (settings.AIDisplayMode==0) {
+                // Show where to move with lines
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // Adjust the last number for transparency 
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(player.x, player.y );
+                for (let i=0; i<pathLength; i++) {
+                    let transp = (i+1)/3;
+                    ctx.strokeStyle = 'rgba(255, 255, 0, ' + transp + ')'; // Adjust the last number for transparency
+                    let toX = sol.interceptLocations[i][0];
+                    let toY = sol.interceptLocations[i][1];
+                    ctx.lineTo( toX, toY );
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            if (settings.AIDisplayMode==1) {
+                // Show a cross on where to click next 
+                ctx.save();
+                ctx.fillStyle = 'yellow'; // Color of the text
+                ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // Adjust the last number for transparency
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+
+                ctx.moveTo(player.x, player.y );
+
+                let i = 0;
+                //for (let i=0; i<pathLength; i++) {
+                    let toX = sol.interceptLocations[i][0];
+                    let toY = sol.interceptLocations[i][1];
+                    ctx.lineTo( toX, toY ); 
+                    ctx.moveTo(toX - 10, toY - 10);
+                    ctx.lineTo(toX + 10, toY + 10);
+                    ctx.moveTo(toX + 10, toY - 10);
+                    ctx.lineTo(toX - 10, toY + 10); 
+
+                    // Draw text
+                    // Adjust the text position as needed. Here it's slightly offset from the cross.
+                    //ctx.fillText(i+1, toX + 15, toY + 15); 
+                //}
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            if (settings.AIDisplayMode==2) {
+                // Highlight the target interception sequence 
+                ctx.save();
+                ctx.fillStyle = 'black'; // Color of the text
+                ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // Adjust the last number for transparency
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+
+                let i = 0;
+                for (let i=0; i<pathLength; i++) {
+                    let indexNow = sol.originalIndex[i];
+                    if (indexNow != -1) {
+                        let toX = objects[indexNow].x;
+                        let toY = objects[indexNow].y;                      
+                        // Draw text
+                        //ctx.fillText(i+1, toX + 25, toY + 25); 
+
+                        // Draw an arrow to the first one
+                        if (i==0) {
+                            drawFilledArrow(ctx, toX - 25 , toY, 10); 
+                        }
+                    }
+                    
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+        
+    }
+}
+
+// MS4: draw arrow
+function drawFilledArrow(ctx, toX, toY, arrowWidth) {
+    const arrowLength = arrowWidth * 4; // Adjust the length of the arrow as needed
+    const headLength = arrowWidth * 0.6; // Length of the head of the arrow
+    const headWidth = arrowWidth * 1.4; // Width of the head of the arrow
+
+    // Starting points for the arrow (adjust as necessary)
+    const fromX = toX - arrowLength;
+    const fromY = toY;
+
+    // Set the fill color
+    //ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+    //ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // Adjust the last number for transparency
+    ctx.fillStyle = 'yellow';
+    //ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // Adjust the last number for transparency
+
+
+    // Begin a new path for the arrow
+    ctx.beginPath();
+
+    // Draw the arrow body as a rectangle
+    ctx.rect(fromX, fromY - arrowWidth / 2, arrowLength - headLength, arrowWidth);
+
+    // Draw the arrow head as a triangle
+    ctx.moveTo(toX - headLength, toY - headWidth / 2);
+    ctx.lineTo(toX, toY);
+    ctx.lineTo(toX - headLength, toY + headWidth / 2);
+
+    // Close the path and fill the arrow with the set color
+    ctx.closePath();
+    ctx.fill();
+}
+
 
 // AI Assistance...
 function highlightAssist(obj) {
@@ -815,62 +970,60 @@ function showTargetMessage(isCaught) {
       messageBox.style.display = 'none';
     }, 2000); // Hide the message after 2 seconds
 }
-
-//  CUSTOM ALERT MESSAGE IN ORDER TO PAUSE THE GAME AND DISPLAY TEXT
-function showCustomAlert(message) {
-    // document.getElementById('customAlertMessage').innerText = message;
-    // document.getElementById('customAlert').style.display = 'flex';
-
-    return new Promise((resolve, reject) => {
-        // Display the custom alert with the message
-        $('#customAlertMessage').text(message);
-        $('#customAlert').show();
-    
-        // Set up the event handlers for the 'X' and 'OK' buttons
-        $('#customAlert .custom-alert-close, #customAlert button').one('click', function() {
-            $('#customAlert').hide();
-            resolve(); // This resolves the Promise allowing code execution to continue
-        });
-    });
-}
-
-function closeCustomAlert() {
-    document.getElementById('customAlert').style.display = 'none';
-}
-
 // *********************************EVENT LISTENERS********************************* //
 
-$(document).ready( function(){
-   // Event listener for player click locations
-   canvas.addEventListener('click', function(event) {
-    // Get the position of the click relative to the canvas
-    // Check not first click so that initializing game doesn't leed to player movement
-        //if (clickCount >= 1) {
-            const rect   = canvas.getBoundingClientRect();
-            const clickX = event.clientX - rect.left;
-            const clickY = event.clientY - rect.top;
-            player.targetX = clickX;
-            player.targetY = clickY;
 
-            // Calculate the angle from the player to the click position
-            const deltaX = clickX - (player.x + player.width / 2);
-            const deltaY = clickY - (player.y + player.height / 2);
-            player.angle = Math.atan2(deltaY, deltaX);
-            player.moving = true;
 
-            playerClicks.push({time: frameCount, targetX: clickX, targetY: clickY, curX: player.x, curY: player.y, angle:player.angle});
-        //}
-    });
+// Move from start page to game
+// Event listener for cursor size adjustment
+// document.getElementById('cursorSize').addEventListener('input', handleCursorSizeChange);
+// document.getElementById('targetProbability').addEventListener('input', handleTargetProbChange);
+// document.getElementById('numObjects').addEventListener('input', handleNumObjectsChange);
 
-    
-    window.closeCustomAlert = closeCustomAlert; // Add closeCustomAlert to the global scope
+// document.getElementById('toggleAIAssistance').addEventListener('click', toggleAIAssistance);
+// document.getElementById('aiAssistRobot').addEventListener('click', toggleAIAssistance);
+
+
+
+// Event listener for starting the game by clicking on the canvas
+canvas.addEventListener('click', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Calculate the position and size of the "Start Game" text
+    const textMetrics = ctx.measureText('Start Game');
+    const textWidth = textMetrics.width;
+    const textHeight = 30; // Estimate the height or calculate it if needed
+    const textX = canvas.width / 2 - textWidth / 2;
+    const textY = canvas.height / 2 - textHeight / 2;
+
+    // Check if the click was within the bounds of the "Start Game" text
+    if (x > textX && x < textX + textWidth && y > textY && y < textY + textHeight) {
+        startGame();
+        canvas.removeEventListener('click', startGame); // Remove the event listener after starting the game
+    }
 });
 
-async function runGameSequence(message) {
-    isPaused = true;
-    await showCustomAlert(message);
-    isPaused = false;
-}
+
+// Event listener for player click locations
+canvas.addEventListener('click', function(event) {
+    // Get the position of the click relative to the canvas
+    const rect = canvas.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+
+    player.targetX = clickX;
+    player.targetY = clickY;
+
+    // Calculate the angle from the player to the click position
+    const deltaX = clickX - (player.x + player.width / 2);
+    const deltaY = clickY - (player.y + player.height / 2);
+    player.angle = Math.atan2(deltaY, deltaX);
+    player.moving = true;
+
+    playerClicks.push({time: frameCount, targetX: clickX, targetY: clickY, curX: player.x, curY: player.y, angle:player.angle});
+});
 
 // Function to handle cursor size change
 function handleCursorSizeChange(event) {
@@ -943,6 +1096,27 @@ function isStartGameAreaClicked(x, y) {
     return x > canvas.width / 2 - 100 && x < canvas.width / 2 + 100 &&
            y > canvas.height / 2 - 20 && y < canvas.height / 2 + 20;
 }
+
+// Function to handle mouse movement
+// function handleMouseMove(event) {
+//     const rect = canvas.getBoundingClientRect();
+//     mouseX = (event.clientX - rect.left);
+//     mouseY = (event.clientY - rect.top);
+
+//     // Clear the previous frame
+//     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+//     // // Create the gradient
+//     // gradientRadius = 100;
+
+//     // let gradient = ctx.createRadialGradient(mouseX, mouseY, gradientRadius, mouseX, mouseY, canvas.width);
+//     // gradient.addColorStop(0, 'rgba(0, 0, 0, 0)'); // Semi-transparent black at center
+//     // gradient.addColorStop(1, 'rgba(0, 0, 0, 0)'); // Fully transparent at edges
+
+//     // // Draw the fog
+//     // ctx.fillStyle = gradient;
+//     // ctx.fillRect(0, 0, canvas.width, canvas.height);
+// }
 
 // Helper function to determine if the click is on the object
 function isClickOnObject(obj, x, y) {

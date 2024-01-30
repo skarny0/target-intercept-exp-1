@@ -208,8 +208,39 @@ $(document).ready(function (){
         $("#consent-header").attr("hidden", true);
         $("#consent-main-content").attr("hidden", true);
         // Show Instructions
-        $("#instructions-header").attr("hidden", false);
-        $("#instructions-main-content").attr("hidden", false);
+        
+
+        if(DEBUG){
+            // $("#task-header").attr("hidden", false);
+            // $("#task-main-content").attr("hidden", false);
+
+            // // Write to Database
+            // // writeRealtimeDatabase(INTEGRITY_DB_PATH, INTEGRITY_DATA);
+
+            // // Load Main Experiment
+            // $('#task-main-content').load('html/game-main-exp.html');
+
+            $("#instructions-header").attr("hidden", false);
+            $("#instructions-main-content").attr("hidden", false);
+
+            // Write to Database
+            let path = EXPERIMENT_DATABASE_NAME + '/participantData/' + firebaseUserId + '/consentData';
+            writeRealtimeDatabase(path, CONSENT_DATA);
+
+            // Load Instructions
+            $('#instructions-main-content').load("html/instructions.html");
+            
+        }else {
+            $("#instructions-header").attr("hidden", false);
+            $("#instructions-main-content").attr("hidden", false);
+
+            // Write to Database
+            let path = EXPERIMENT_DATABASE_NAME + '/participantData/' + firebaseUserId + '/consentData';
+            writeRealtimeDatabase(path, CONSENT_DATA);
+
+            // Load Instructions
+            $('#instructions-main-content').load("html/instructions.html");
+        }
 
         // Write to Database
         let path = EXPERIMENT_DATABASE_NAME + '/participantData/' + firebaseUserId + '/consentData';

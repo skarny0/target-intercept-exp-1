@@ -36,9 +36,9 @@ var EXPERIMENT_NAME             = "Target Intercept Game";
 
 // Make sure to change this to your database name!
 if (DEBUG){
-    var EXPERIMENT_DATABASE_NAME    = "uci-hri-experiment-1-pilot2-debug";
+    var EXPERIMENT_DATABASE_NAME    = "uci-hri-experiment-1-pilot3-debug";
 } else {
-    var EXPERIMENT_DATABASE_NAME    = "uci-hri-experiment-1-pilot2";
+    var EXPERIMENT_DATABASE_NAME    = "uci-hri-experiment-1-pilot3";
 }
     
 

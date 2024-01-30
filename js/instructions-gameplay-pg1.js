@@ -169,19 +169,19 @@ async function endGame(advanceRound = false) {
     isGameRunning = false;
     // console.log(gameTime); // Add this line
     clearInterval(gameInterval); 
-    console.log("Game Over!");
+    // console.log("Game Over!");
   
     // Additional end-game logic here
     const gameCanvas = document.getElementById('gameCanvas');
     gameCanvas.style.display = 'none';
     
-    console.log("Successfully Spawned Objects", spawnData);
-    console.log("Intercepted Targets", caughtTargets);  
-    console.log("Player Clicks Location", playerClicks);
-    console.log("Player Locations During Movement", playerLocation);
+    // console.log("Successfully Spawned Objects", spawnData);
+    // console.log("Intercepted Targets", caughtTargets);  
+    // console.log("Player Clicks Location", playerClicks);
+    // console.log("Player Locations During Movement", playerLocation);
     
     $('#comprehension-quiz-main-content').load('html/instructions-gameplay-pg2.html');
-    console.log("Moving on to task 2 of 5");
+    // console.log("Moving on to task 2 of 5");
 }
 
 function gameLoop(timestamp) {
@@ -200,7 +200,7 @@ function gameLoop(timestamp) {
 
     render(); 
     requestAnimationFrame(gameLoop); // Schedule the next frame
-    console.log("Current Frame Count:", frameCountGame);    
+    // console.log("Current Frame Count:", frameCountGame);    
 }
 
 var lastUpdateTime = 0;
@@ -221,17 +221,17 @@ function render() {
     drawObjects();          // Draw objects
     ctx.restore();
     // drawScore();            // Draw score
-    console.log("Current Frame Count:", frameCountGame);
+    // console.log("Current Frame Count:", frameCountGame);
 }
 
 // Update game objects
 function updateObjects(settings) {
     if (isPaused){
-        console.log("Game is paused");
+        // console.log("Game is paused");
         return;
     } 
     if (frameCountGame == 0) {
-        console.log("Starting Game");
+        // console.log("Starting Game");
         runGameSequence("First, Read The Instructions Carefully. After, Click OK to Begin This Task.");
     }
     frameCountGame++; // MS: increment scene update count
@@ -288,7 +288,7 @@ function updateObjects(settings) {
                     endGame(false);
                 }
                 
-                console.log("Collision detected at location:", obj.x, obj.y);
+                // console.log("Collision detected at location:", obj.x, obj.y);
                 caughtTargets.push(obj);
             }
         }
@@ -389,7 +389,7 @@ function setVelocityTowardsObservableArea(obj) {
     // Set velocity based on the angle within the cone
     obj.vx = Math.cos(randomAngleWithinCone);
     obj.vy = Math.sin(randomAngleWithinCone);
-    console.log(`Initial Velocity for object: vx = ${obj.vx}, vy = ${obj.vy}`);
+    // console.log(`Initial Velocity for object: vx = ${obj.vx}, vy = ${obj.vy}`);
 }
 
 // Choose one function
@@ -457,7 +457,7 @@ function spawnObject(settings){
         // MS: I commented out the next conditiona; as we don't need it any longer
 
         if (randomThreshold < settings.spawnProbability){
-            console.log("Spawn Threshold Met");
+            // console.log("Spawn Threshold Met");
             let newObject = createComposite(settings);
             // assign the object to a random spawn location
             // console.log("Spawn Location Data:", location);
@@ -486,7 +486,7 @@ function spawnObject(settings){
     
             // push to objects array in order to render and update
             objects.push(newObject);
-            console.log("New Object Spawned", newObject);
+            // console.log("New Object Spawned", newObject);
             spawnData.push(newObject)
         }
         location.lastSpawnTime = elapsedTime;

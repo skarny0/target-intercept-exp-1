@@ -176,19 +176,19 @@ async function endGame(advanceRound = false) {
     isGameRunning = false;
     // console.log(gameTime); // Add this line
     clearInterval(gameInterval); 
-    console.log("Game Over!");
+    // console.log("Game Over!");
   
     // Additional end-game logic here
     const gameCanvas = document.getElementById('gameCanvas');
     gameCanvas.style.display = 'none';
     
-    console.log("Successfully Spawned Objects", spawnData);
-    console.log("Intercepted Targets", caughtTargets);  
-    console.log("Player Clicks Location", playerClicks);
-    console.log("Player Locations During Movement", playerLocation);
+    // console.log("Successfully Spawned Objects", spawnData);
+    // console.log("Intercepted Targets", caughtTargets);  
+    // console.log("Player Clicks Location", playerClicks);
+    // console.log("Player Locations During Movement", playerLocation);
     
     $('#comprehension-quiz-main-content').load('html/instructions-gameplay-pg3.html');
-    console.log("Moving on to task 3 of 5");
+    // console.log("Moving on to task 3 of 5");
 }
 
 function gameLoop(timestamp) {
@@ -232,11 +232,11 @@ function render() {
 // Update game objects
 function updateObjects(settings) {
     if (isPaused){
-        console.log("Game is paused");
+        // console.log("Game is paused");
         return;
     } 
     if (frameCountGame == 0) {
-        console.log("Starting Game");
+        // console.log("Starting Game");
         runGameSequence("First, Read The Instructions Carefully. After, Click OK to Begin This Task.");
     }
 
@@ -288,7 +288,7 @@ function updateObjects(settings) {
                 runGameSequence("Target missed! Remember to plan your movements.");
                 understandingCheckFailed = true;
                 failedCounter += 1;
-                console.log("Object is outside observable area");
+                // console.log("Object is outside observable area");
                 obj.active = false; // Set the object to inactive
                 objects = [] // Remove the object from the array
                 spawnUnderstandingCheckObjects();
@@ -299,21 +299,21 @@ function updateObjects(settings) {
                 obj.active = false;
                 objects.splice(index, 1); // Remove the object from the array
                 
-                console.log("Collision detected!");
+                // console.log("Collision detected!");
                 caughtTargets.push(obj);
 
                 if (obj.fast) {
-                    console.log("High-speed target caught!");
+                    // console.log("High-speed target caught!");
                     fastObjectCaught = true; // set the flag if the high-value object is caught
                 }
                 else{
-                    console.log("Low-speed target caught!");
+                    // console.log("Low-speed target caught!");
                     slowObjectCaught = true; // set the flag if the low-value object is caught
                 }
 
                 if (fastObjectCaught && slowObjectCaught){
                     passCounter     += 1;
-                    console.log("pass counter: " + passCounter);
+                    // console.log("pass counter: " + passCounter);
                 }
 
                 if (objects.length == 0 && passCounter < 3){
@@ -466,7 +466,7 @@ function setVelocityTowardsObservableArea(obj) {
     // Set velocity based on the angle within the cone
     obj.vx = Math.cos(randomAngleWithinCone);
     obj.vy = Math.sin(randomAngleWithinCone);
-    console.log(`Initial Velocity for object: vx = ${obj.vx}, vy = ${obj.vy}`);
+    // console.log(`Initial Velocity for object: vx = ${obj.vx}, vy = ${obj.vy}`);
 }
 
 // Choose one function
@@ -534,7 +534,7 @@ function spawnObject(settings){
         // MS: I commented out the next conditiona; as we don't need it any longer
 
         if (randomThreshold < settings.spawnProbability){
-            console.log("Spawn Threshold Met");
+            // console.log("Spawn Threshold Met");
             let newObject = createComposite(settings);
             // assign the object to a random spawn location
             // console.log("Spawn Location Data:", location);
@@ -563,7 +563,7 @@ function spawnObject(settings){
     
             // push to objects array in order to render and update
             objects.push(newObject);
-            console.log("New Object Spawned", newObject);
+            // console.log("New Object Spawned", newObject);
             spawnData.push(newObject)
         }
         location.lastSpawnTime = elapsedTime;

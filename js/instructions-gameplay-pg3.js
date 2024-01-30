@@ -147,7 +147,7 @@ function startGame(round) {
         
         if (!understandingCheckPassed) {
             spawnUnderstandingCheckObjects(); // Spawn understanding check objects
-            console.log("Status of Understanding Check", understandingCheckPassed);
+            // console.log("Status of Understanding Check", understandingCheckPassed);
         }
 
         gameStartTime   = Date.now();
@@ -170,22 +170,22 @@ async function endGame(advanceRound = false) {
         //alert("You passed this comprehension check! Moving on to the last task.");
         await runGameSequence("You passed this comprehension check! Moving on to the next task. Click OK to continue.");
         $('#comprehension-quiz-main-content').load('html/instructions-gameplay-pg4.html');
-        console.log("Moving on to Integrity Pledge");
+        // console.log("Moving on to Integrity Pledge");
     }
 
     isGameRunning = false;
     // console.log(gameTime); // Add this line
     clearInterval(gameInterval); 
-    console.log("Game Over!");
+    // console.log("Game Over!");
   
     // Additional end-game logic here
     const gameCanvas = document.getElementById('gameCanvas');
     gameCanvas.style.display = 'none';
 
-    console.log("Successfully Spawned Objects", spawnData);
-    console.log("Intercepted Targets", caughtTargets);  
-    console.log("Player Clicks Location", playerClicks);
-    console.log("Player Locations During Movement", playerLocation);
+    // console.log("Successfully Spawned Objects", spawnData);
+    // console.log("Intercepted Targets", caughtTargets);  
+    // console.log("Player Clicks Location", playerClicks);
+    // console.log("Player Locations During Movement", playerLocation);
     // point to the next page which would be game.html
    
     if(passCounter < 3 && !understandingCheckFailed){
@@ -289,11 +289,11 @@ function render() {
 function updateObjects(settings) {
     
     if (isPaused){
-        console.log("Game is paused");
+        // console.log("Game is paused");
         return;
     } 
     if (frameCountGame == 0) {
-        console.log("Starting Game");
+        // console.log("Starting Game");
         runGameSequence("First, Read The Instructions Carefully. After, Click OK to Begin This Task.");
     }
 
@@ -343,11 +343,11 @@ function updateObjects(settings) {
 
             if (distanceFromCenter > observableRadius) {
                 if (obj.highValue){
-                    console.log("High-value target missed!");
+                    // console.log("High-value target missed!");
                     understandingCheckFailed = true;
                     failedCounter += 1;
                 }
-                console.log("Object is outside observable area");
+                // console.log("Object is outside observable area");
                 obj.active = false; // Set the object to inactive
                 objects.splice(index, 1); // Remove the object from the array
             }
@@ -355,20 +355,20 @@ function updateObjects(settings) {
             if (checkCollision(player, obj)) {
                 // Collision detected
                 if (obj.highValue) {
-                    console.log("High-value target caught!");
+                    // console.log("High-value target caught!");
                     highValueTargetCaught       = true; // set the flag if the high-value object is caught
                     understandingCheckPassed    = true;
                     passCounter                 += 1;
                 }
                 else{
-                    console.log("Low-value target caught!");
+                    // console.log("Low-value target caught!");
                     understandingCheckFailed    = true;
                     failedCounter               +=  1;
                 }
                 obj.active = false;
                 objects.splice(index, 1); // Remove the object from the array
                 
-                console.log("Collision detected!");
+                // console.log("Collision detected!");
                 caughtTargets.push(obj);
             }
         }
@@ -471,7 +471,7 @@ function setVelocityTowardsObservableArea(obj) {
     // Set velocity based on the angle within the cone
     obj.vx = Math.cos(randomAngleWithinCone);
     obj.vy = Math.sin(randomAngleWithinCone);
-    console.log(`Initial Velocity for object: vx = ${obj.vx}, vy = ${obj.vy}`);
+    // console.log(`Initial Velocity for object: vx = ${obj.vx}, vy = ${obj.vy}`);
 }
 
 // Choose one function
@@ -539,7 +539,7 @@ function spawnObject(settings){
         // MS: I commented out the next conditiona; as we don't need it any longer
 
         if (randomThreshold < settings.spawnProbability){
-            console.log("Spawn Threshold Met");
+            // console.log("Spawn Threshold Met");
             let newObject = createComposite(settings);
             // assign the object to a random spawn location
             // console.log("Spawn Location Data:", location);
@@ -568,7 +568,7 @@ function spawnObject(settings){
     
             // push to objects array in order to render and update
             objects.push(newObject);
-            console.log("New Object Spawned", newObject);
+            // console.log("New Object Spawned", newObject);
             spawnData.push(newObject)
         }
         location.lastSpawnTime = elapsedTime;
