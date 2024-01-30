@@ -135,7 +135,7 @@ let difficultySettings = {
         AIDisplayMode: 1, // MS4: 0=show movement path; 1=show where to click; 2=show which targets to intercept
         AIMaxDisplayLength: 3, // MS4: can be used to truncate the AI path length shown
         visualizeAIPlayer: 0, // MS5: 0:default; 1=visualize AI player running in background
-        maxTargets: 5, // MS2: added this parameter to limit total number of targets
+        maxTargets: 6, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1,
         spawnInterval: 20,
         valueSkew: 1,
@@ -184,7 +184,7 @@ let difficultySettings = {
         AIDisplayMode: 1, // MS4: 0=show movement path; 1=show where to click; 2=show which targets to intercept
         AIMaxDisplayLength: 3, // MS4: can be used to truncate the AI path length shown
         visualizeAIPlayer: 0, // MS5: 0:default; 1=visualize AI player running in background
-        maxTargets: 5, // MS2: added this parameter to limit total number of targets
+        maxTargets: 6, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1,
         spawnInterval: 20,
         valueSkew: 1,
