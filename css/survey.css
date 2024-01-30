@@ -56,7 +56,7 @@ Everything is in order as it appears in the HTML file (top to bottom).
     justify-content: center;
 }
 .survey-likert-legend-header {
-    margin-bottom: 15px;
+    margin-bottom: 50px;
 }
 .likert-legend {
     list-style:none;
@@ -76,7 +76,7 @@ Everything is in order as it appears in the HTML file (top to bottom).
 }
 /*  Likert Topic Row    */
 .survey-likert-topic-container {
-    height: 220px;
+    height: 250px;
     /*padding-bottom: 0.5rem;*/
     border-bottom: 2px solid #0064a4;
 }
@@ -144,7 +144,7 @@ input[name="Mental"] {
     margin: auto;
     z-index: 1;
     width: 100%;
-    height: 1.5em
+    height: 2em
 }
 input[name="Physical"] {
     position:relative;
@@ -152,7 +152,7 @@ input[name="Physical"] {
     margin: auto;
     z-index: 1;
     width: 100%;
-    height: 1.5em
+    height: 2em
 }
 input[name="Hurried"] {
     position:relative;
@@ -160,7 +160,7 @@ input[name="Hurried"] {
     margin: auto;
     z-index: 1;
     width: 100%;
-    height: 1.5em
+    height: 2em
 }
 input[name="Success"] {
     position:relative;
@@ -168,7 +168,7 @@ input[name="Success"] {
     margin: auto;
     z-index: 1;
     width: 100%;
-    height: 1.5em
+    height: 2em
 }
 input[name="Hard"] {
     position:relative;
@@ -176,7 +176,7 @@ input[name="Hard"] {
     margin: auto;
     z-index: 1;
     width: 100%;
-    height: 1.5em
+    height: 2em
 }
 input[name="Insecure"] {
     position:relative;
@@ -184,7 +184,7 @@ input[name="Insecure"] {
     margin: auto;
     z-index: 1;
     width: 100%;
-    height: 1.5em
+    height: 2em
 }
 
 /**************************************
