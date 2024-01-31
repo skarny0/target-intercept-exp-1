@@ -633,7 +633,7 @@ function updateObjects(settings) {
                 AIcaughtTargets.push(caughtObj);
                 AIplayer.score += obj.value;
                 aiScore        += obj.value;
-                console.log("AI Score", AIplayer.score);
+                //console.log("AI Score", AIplayer.score);
                 
             }
         }
