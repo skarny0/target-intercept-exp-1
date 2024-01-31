@@ -166,7 +166,7 @@ function runAIPlanner( objects, player , observableRadius , center, planNumFrame
   let objectPositionsY = filteredObjects.map(object => (object.y - center.y) / observableRadius);
   let objectVelocitiesX = filteredObjects.map(object => (object.vx * object.speed) / observableRadius);
   let objectVelocitiesY = filteredObjects.map(object => (object.vy * object.speed) / observableRadius);
-  let objectValues = filteredObjects.map(object => object.fill / object.size);
+  let objectValues = filteredObjects.map(object => object.value); // checks value of object
   let originalIndex = filteredObjects.map(object => object.OriginalIndex );
   
   let circleRadius = +1.00;

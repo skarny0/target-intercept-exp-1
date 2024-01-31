@@ -36,9 +36,9 @@ var DEBUG  = getDebugParams();   // Always start coding in DEBUG mode
 let studyId = 'placeHolder';
 
 if (!DEBUG){
-    studyId = 'uci-hri-experiment-1-pilot3';
+    studyId = 'uci-hri-experiment-1-full';
 } else {
-    studyId = 'uci-hri-experiment-1-pilot3-debug';
+    studyId = 'uci-hri-experiment-1-full-debug';
 }
 // console.log("Study ID: " + studyId);    
 
@@ -55,6 +55,11 @@ function writeGameDatabase(){
 
     let path8 = studyId + '/participantData/' + firebaseUserId + '/round' + currentRound + '/AIcaughtTargets';
     let path9 = studyId + '/participantData/' + firebaseUserId + '/round' + currentRound + '/AIplayerLocation';
+    
+
+    // AI and Player score
+    let path10 = studyId + '/participantData/' + firebaseUserId + '/round' + currentRound + '/aiScore';
+    let path11 = studyId + '/participantData/' + firebaseUserId + '/round' + currentRound + '/playerScore';
 
     writeRealtimeDatabase(path1, spawnData);
     writeRealtimeDatabase(path2, caughtTargets);
@@ -66,6 +71,8 @@ function writeGameDatabase(){
 
     writeRealtimeDatabase(path8, AIcaughtTargets);
     writeRealtimeDatabase(path9, AIplayerLocation);
+    writeRealtimeDatabase(path10, aiScore);
+    writeRealtimeDatabase(path11, score);   
 
 }
 // // Example: storing a numeric value
@@ -85,92 +92,69 @@ let observableRadius = 390; // Radius for positioning objects
 
 let settings = {};
 
-// change game to complete based on 2 minutes of frame counts at 60 fps
-
-function getDifficultySettingsFromURL() {
-    const urlParams = new URLSearchParams(window.location.search);
-    let settings = {
-        AIMode: parseInt(urlParams.get('maxTargets'), 10) || 1, // MS4: 0=no assistance; 1=always on; 2=adaptive
-        planNumFramesAhead: parseInt(urlParams.get('maxTargets'), 10) || 5, // MS4: plan solution for display a certain number of frames ahead (to allow human response time) 
-        AIDisplayMode: parseInt(urlParams.get('maxTargets'), 10) || 1, // MS4: 0=show movement path; 1=show where to click; 2=show which targets to intercept 
-        AIMaxDisplayLength: parseInt(urlParams.get('maxTargets'), 10) || 3, // MS4: can be used to truncate the AI path length shown
-        visualizeAIPlayer: parseInt(urlParams.get('maxTargets'), 10) || 0, // MS5: 0:default; 1=visualize AI player running in background
-        maxTargets: parseInt(urlParams.get('maxTargets'), 10) || 8, // MS2: added this parameter to limit total number of targets
-        spawnProbability: parseFloat(urlParams.get('spawnProbability')) || 1.0,
-        spawnInterval: parseInt(urlParams.get('spawnInterval'), 10) || 10,
-        // numSpawnLocations: parseInt(urlParams.get('numSpawnLocations'), 10) || 10,
-        valueSkew: parseFloat(urlParams.get('valueSkew')) || 1,
-        valueLow: parseFloat(urlParams.get('valueLow')) ||0,
-        valueHigh: parseFloat(urlParams.get('valueHigh')) || 1,
-        playerSpeed: parseFloat(urlParams.get('playerSpeed'),10) || 1.5,
-        speedLow: parseFloat(urlParams.get('speedLow'),10) || 0.75, // lowest end of object speed distribution
-        speedHigh: parseFloat(urlParams.get('speedHigh'),10) || 2.5, // highest end of object speed distribution
-        randSeed: parseInt(urlParams.get('randSeed'), 10) || 12345
-    };
-    return settings;
-}
-
 // ***********************EXPERIMENTAL PARAMETERS***************************// 
+
+// NOTE: AI MODE FOR EXPERIMENT 1 SHOULD BE === 0 (NO ASSISTANCE)
 
 let difficultySettings = {
     1: {experiment: 1, // SK: 1=Experiment 1 - no drawing ; 2=Experiments 2 & 3 drawing always on
-        AIMode: 1, // MS4: 0=no assistance; 1=always on; 2=adaptive
+        AIMode: 0, // MS4: 0=no assistance; 1=always on; 2=adaptive
         planNumFramesAhead: 5, // MS4: plan solution for display a certain number of frames ahead (to allow human response time)
         AIDisplayMode: 1, // MS4: 0=show movement path; 1=show where to click; 2=show which targets to intercept
         AIMaxDisplayLength: 3, // MS4: can be used to truncate the AI path length shown
         visualizeAIPlayer: 0, // MS5: 0:default; 1=visualize AI player running in background
         maxTargets: 3, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1.0,
-        spawnInterval: 20,
+        spawnInterval: 10,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 3,
         speedLow:  1.5, // lowest end of object speed distribution
         speedHigh: 3, // highest end of object speed distribution
-        randSeed: 12345},
+        randSeed: 12},
     2: {experiment: 1, // SK: 1=Experiment 1 - no drawing ; 2=Experiments 2 & 3 drawing always on
-        AIMode: 1, // MS4: 0=no assistance; 1=always on; 2=adaptive
+        AIMode: 0, // MS4: 0=no assistance; 1=always on; 2=adaptive
         planNumFramesAhead: 5, // MS4: plan solution for display a certain number of frames ahead (to allow human response time)
         AIDisplayMode: 1, // MS4: 0=show movement path; 1=show where to click; 2=show which targets to intercept
         AIMaxDisplayLength: 3, // MS4: can be used to truncate the AI path length shown
         visualizeAIPlayer: 0, // MS5: 0:default; 1=visualize AI player running in background
         maxTargets: 6, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1,
-        spawnInterval: 20,
+        spawnInterval: 10,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 3,
         speedLow: 1.5, // lowest end of object speed distribution
         speedHigh: 3, // highest end of object speed distribution
-        randSeed: 12345},
+        randSeed: 123},
     // Add more settings for each level
     3: {experiment: 1, // SK: 1=Experiment 1 - no drawing ; 2=Experiments 2 & 3 drawing always on
-        AIMode: 1, // MS4: 0=no assistance; 1=always on; 2=adaptive
+        AIMode: 0, // MS4: 0=no assistance; 1=always on; 2=adaptive
         planNumFramesAhead: 5, // MS4: plan solution for display a certain number of frames ahead (to allow human response time)
         AIDisplayMode: 1, // MS4: 0=show movement path; 1=show where to click; 2=show which targets to intercept
         AIMaxDisplayLength: 3, // MS4: can be used to truncate the AI path length shown
         visualizeAIPlayer: 0, // MS5: 0:default; 1=visualize AI player running in background
         maxTargets: 9, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1,
-        spawnInterval: 20,
+        spawnInterval: 10,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 3,
         speedLow:  1.5, // lowest end of object speed distribution
         speedHigh: 3, // highest end of object speed distribution
-        randSeed: 12345},
+        randSeed: 1234},
     4: {experiment: 1, // SK: 1=Experiment 1 - no drawing ; 2=Experiments 2 & 3 drawing always on
-        AIMode: 1, // MS4: 0=no assistance; 1=always on; 2=adaptive
+        AIMode: 0, // MS4: 0=no assistance; 1=always on; 2=adaptive
         planNumFramesAhead: 5, // MS4: plan solution for display a certain number of frames ahead (to allow human response time)
         AIDisplayMode: 1, // MS4: 0=show movement path; 1=show where to click; 2=show which targets to intercept
         AIMaxDisplayLength: 3, // MS4: can be used to truncate the AI path length shown
         visualizeAIPlayer: 0, // MS5: 0:default; 1=visualize AI player running in background
         maxTargets: 3, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1.0,
-        spawnInterval: 20,
+        spawnInterval: 10,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
@@ -179,38 +163,38 @@ let difficultySettings = {
         speedHigh: 3, // highest end of object speed distribution
         randSeed: 12345},
     5: {experiment: 1, // SK: 1=Experiment 1 - no drawing ; 2=Experiments 2 & 3 drawing always on
-        AIMode: 1, // MS4: 0=no assistance; 1=always on; 2=adaptive
+        AIMode: 0, // MS4: 0=no assistance; 1=always on; 2=adaptive
         planNumFramesAhead: 5, // MS4: plan solution for display a certain number of frames ahead (to allow human response time)
         AIDisplayMode: 1, // MS4: 0=show movement path; 1=show where to click; 2=show which targets to intercept
         AIMaxDisplayLength: 3, // MS4: can be used to truncate the AI path length shown
         visualizeAIPlayer: 0, // MS5: 0:default; 1=visualize AI player running in background
         maxTargets: 6, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1,
-        spawnInterval: 20,
+        spawnInterval: 10,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 3,
         speedLow:  1.5, // lowest end of object speed distribution
         speedHigh: 3, // highest end of object speed distribution
-        randSeed: 12345},
+        randSeed: 123456},
     // Add more settings for each level
     6: {experiment: 1, // SK: 1=Experiment 1 - no drawing ; 2=Experiments 2 & 3 drawing always on
-        AIMode: 1, // MS4: 0=no assistance; 1=always on; 2=adaptive
+        AIMode: 0, // MS4: 0=no assistance; 1=always on; 2=adaptive
         planNumFramesAhead: 5, // MS4: plan solution for display a certain number of frames ahead (to allow human response time)
         AIDisplayMode: 1, // MS4: 0=show movement path; 1=show where to click; 2=show which targets to intercept
         AIMaxDisplayLength: 3, // MS4: can be used to truncate the AI path length shown
         visualizeAIPlayer: 0, // MS5: 0:default; 1=visualize AI player running in background
         maxTargets: 9, // MS2: added this parameter to limit total number of targets
         spawnProbability:  1,
-        spawnInterval: 20,
+        spawnInterval: 10,
         valueSkew: 1,
         valueLow: 0,
         valueHigh:  1,
         playerSpeed: 3,
         speedLow:  1.5, // lowest end of object speed distribution
         speedHigh: 3, // highest end of object speed distribution
-        randSeed: 12345},
+        randSeed: 1234567},
 };
 
 // Get the keys for randomization
@@ -227,13 +211,12 @@ writeURLParameters(pathnow);
 // Timing variables
 let gameStartTime, elapsedTime;
 let isPaused            = false; // flag for pausing the game
-const gameTime          = 120000; // Two minutes in milliseconds
 
 let isGameRunning       = false;
 let frameCountGame      = 0; // MS: number of updates of the scene
 let deltaFrameCount     = 0; // To limit the size of the Event Stream object; 
 const fps               = 30; // Desired logic updates per second
-const maxFrames         = 120 * fps;//120 * 60; // Two minutes in frames
+const maxFrames         = 30 * fps;//120 * 60; // Two minutes in frames
 const updateInterval    = 1000 / fps; // How many milliseconds per logic update
 let firstRender         = 0;
 let roundTime           = 0;
@@ -259,6 +242,7 @@ let mouseX = 0, mouseY = 0;
 
 // Varaiables for HTML elements
 let score = 0;
+let aiScore = 0;
 
 // Player and View Initialization (related to one another)
 const playerSize = 50;
@@ -274,6 +258,7 @@ const player = {
     speed: 1.5, 
     width:50, 
     height:50,
+    score:0
 };
 const camera = {
     x: world.width / 2,
@@ -296,8 +281,7 @@ function lcg(seed) {
   }
   
 let randomGenerator;
-// MS4: ******************************* AI PLANNER ********************************
-//testCase();
+// MS4: ******************************* AI PLANNER ************************************//
 let sol; // MS4: global variable that contains planned path for current frame
 
 const AIplayerSize = 50;
@@ -313,14 +297,12 @@ const AIplayer = {
     speed: 1.5, 
     width:50, 
     height:50,
+    score: 0,
 };
 let AIcaughtTargets = [];
 let AIplayerLocation = [];
 
-
-
 // ****************************UPDATE FUNCTIONS***************************//
-
 
 // Start Game function
 function startGame(round) {
@@ -381,13 +363,8 @@ async function endGame(advanceRound = false) {
     // console.log("Player Locations During Movement", playerLocation);
     // console.log("Event Stream", eventStream);
 
-    // $('#comprehension-quiz-main-content').load('html/integrity-pledge.html');
-    // console.log("Moving on to the integrity pledge and then the full game");
-
-    // using this to not block the main thread. 
-    // requestIdleCallback(() => {
-        writeGameDatabase();
-    // });
+    // write to firebase
+    writeGameDatabase();
 
     if (advanceRound) {
         // round = currentRound;
@@ -395,39 +372,43 @@ async function endGame(advanceRound = false) {
         currentRound++;
         if (currentRound <= maxRounds && currentRound > 1) {
             await runGameSequence("You've Completed a Round and earned " + score + " points. Click OK to continue.");
-            // console.log("Starting next round", currentRound);
+           
+            eventStream     = null;
+            objects         = null;
+            spawnData       = null;
+            caughtTargets   = null;
+            playerClicks    = null;
+            playerLocation  = null;
+            score           = null;
+            aiScore         = null;
+            player.score    = null;
+            AIplayer.score  = null
 
-            // requestIdleCallback(() => {
-                // first clear the heap
-                // eventStream     = null;
-                objects         = null;
-                spawnData       = null;
-                caughtTargets   = null;
-                playerClicks    = null;
-                playerLocation  = null;
-                score           = null;
+            AIcaughtTargets  = null;
+            AIplayerLocation = null;
 
-                AIcaughtTargets = null;
-                AIplayerLocation = null;
+            // then reassign the variables
+            eventStream = Array.from({ length: eventStreamSize }, () => ({}));// preallocate the array
+            objects         = []; // Reset the objects array
+            spawnData       = [];
+            caughtTargets   = [];
+            playerClicks    = [];
+            playerLocation  = [];
+            score           = 0;    
+            aiScore         = 0;
 
-                // then reassign the variables
-                eventStream = Array.from({ length: eventStreamSize }, () => ({}));// preallocate the array
-                objects         = []; // Reset the objects array
-                spawnData       = [];
-                caughtTargets   = [];
-                playerClicks    = [];
-                playerLocation  = [];
-                score           = 0;    
+            player.score    = 0;
+            AIplayer.score  = 0;
 
-                AIcaughtTargets = [];
-                AIplayerLocation = [];
-                
-                player.x        = canvas.width/2;
-                player.y        = canvas.height/2;
-                player.targetX  = canvas.width/2;
-                player.targetY  = canvas.height/2;
-                AIplayer.x, AIplayer.y = canvas.width/2 - playerSize/2; // MS5: Reset the player position
-            // });
+            AIcaughtTargets  = [];
+            AIplayerLocation = [];
+            
+            player.x        = canvas.width/2;
+            player.y        = canvas.height/2;
+            player.targetX  = canvas.width/2;
+            player.targetY  = canvas.height/2;
+            AIplayer.x, AIplayer.y = canvas.width/2 - playerSize/2; // MS5: Reset the player position
+            
             
             startGame(currentRound); // Start the next round
         } else {
@@ -504,9 +485,10 @@ function render() {
         drawAIPlayer();
     }
     if (player.moving) drawArrowDirection();   // Draw arrow direction  }
-    if (settings.experiment>1){
-        drawAISolution(); // MS4: draw the path suggested by AI
-    }
+    // if (settings.experiment>1){
+    //     // MS4: draw the path suggested by AI
+    // }
+    drawAISolution();
     drawTargetLocation();   // Draw target location
     // drawCursor(mouseX, mouseY); // Draw cursor
     drawObjects();          // Draw objects
@@ -530,33 +512,26 @@ function updateObjects(settings) {
     }
 
     if (deltaFrameCount == 0){
-        let newEventObject      = {frame: frameCountGame, time: roundTime, player: {}, objects:{}}; 
-        // append current game condition given the frame
-        // newEventObject.time     = frameCountGame;
-        let curPlayerdata      = player;
-        newEventObject.player   = JSON.parse(JSON.stringify(curPlayerdata));
-
-        let curObjs            = objects.filter(obj => obj.active);
-        newEventObject.objects  = JSON.parse(JSON.stringify(curObjs));
-
-        // console.log("Event Stream Index", (frameCountGame+1)/10);
         const index =  (frameCountGame)/10;
-
         if (index >= 0){
+            let newEventObject      = {frame: frameCountGame, time: roundTime, player: {}, aiPlayer: {}, objects:{}}; 
+            // append current game condition given the frame
+            // write player data
+            let curPlayerdata       = player;
+            newEventObject.player   = JSON.parse(JSON.stringify(curPlayerdata));
+            // write ai data
+            let curAIdata           = AIplayer;
+            newEventObject.aiPlayer = JSON.parse(JSON.stringify(curAIdata));
+            // write all objects on screen
+            let curObjs             = objects.filter(obj => obj.active);
+            newEventObject.objects  = JSON.parse(JSON.stringify(curObjs));
             // console.log("Event Stream Index", index)
             eventStream[index] = newEventObject;
         }
-       
-        // eventStream.push(newEventObject);
     }
     
     frameCountGame++; // MS: increment scene update count
     deltaFrameCount++; // limit the amount of data pushes
-
-    //console.log( 'Scene update count: ' + frameCountGame);
-
-    // console.log("Current Settings", settings)
-    // console.log('Updating objects');
 
     player.velocity = settings.playerSpeed;
  
@@ -604,7 +579,7 @@ function updateObjects(settings) {
         AIplayer.x += AIplayer.velocity * Math.cos(AIplayer.angle);
         AIplayer.y += AIplayer.velocity * Math.sin(AIplayer.angle);
         AIplayer.moving = true;
-        AIplayerLocation.push({time: frameCountGame, x: AIplayer.x, y: AIplayer.y});
+        AIplayerLocation.push({frame: frameCountGame, x: AIplayer.x, y: AIplayer.y});
     }
 
     // MS: and inserted the following code
@@ -636,18 +611,30 @@ function updateObjects(settings) {
                 // Collision detected
                 //obj.active = false; // MS2: commented out this line
                 //objects.splice(index, 1); // MS2: commented out this line
+               
                 obj.intercepted = true; // MS2: added this flag
-                score += obj.value;
-                
+
+                // write to overall score and to player object
+                score        += obj.value;
+                player.score += obj.value;
+
+                let caughtObj = {frame: frameCountGame, target: obj}
+
                 // console.log("Collision detected!");
-                caughtTargets.push(obj);
+                caughtTargets.push(caughtObj);
             }
 
             if (!obj.AIintercepted && checkCollision(AIplayer, obj)) { // MS5: added a condition
                 // Collision detected
-                obj.AIintercepted = true; // MS2: added this flag             
+                obj.AIintercepted = true; // MS2: added this flag    
+
+                let caughtObj = {frame: frameCountGame, target: obj}    
                 //console.log("AI Collision detected!");
-                AIcaughtTargets.push(obj);
+                AIcaughtTargets.push(caughtObj);
+                AIplayer.score += obj.value;
+                aiScore        += obj.value;
+                console.log("AI Score", AIplayer.score);
+                
             }
         }
         
@@ -667,19 +654,20 @@ function updateObjects(settings) {
         objects.splice(toRemove[i], 1);
     }
 
+    sol = runAIPlanner( objects, AIplayer , observableRadius , center, 0, 'AI' );
+
+    // MS5: Run planner for the AI player
+    AIplayer.targetX = sol.interceptLocations[0][0]; // Set target position for the AI player
+    AIplayer.targetY = sol.interceptLocations[0][1]; 
     // MS4: Run AI planner
     if (settings.AIMode>0) {
-        // MS5: Run planner for the AI player
-        sol = runAIPlanner( objects, AIplayer , observableRadius , center, 0, 'AI' );
-        AIplayer.targetX = sol.interceptLocations[0][0]; // Set target position for the AI player
-        AIplayer.targetY = sol.interceptLocations[0][1]; 
-
         // MS4
         //console.time('functionExecutionTime');
         sol = runAIPlanner( objects, player , observableRadius , center, settings.planNumFramesAhead , 'human' ); 
         //console.timeEnd('functionExecutionTime');
         //console.log( 'Calculated AI path');   
     }
+
 }
 
 function spawnObject(settings){

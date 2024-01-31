@@ -213,11 +213,7 @@ $(document).ready(function (){
         if(DEBUG){
             // $("#task-header").attr("hidden", false);
             // $("#task-main-content").attr("hidden", false);
-
-            // // Write to Database
-            // // writeRealtimeDatabase(INTEGRITY_DB_PATH, INTEGRITY_DATA);
-
-            // // Load Main Experiment
+            // Load Main Experiment
             // $('#task-main-content').load('html/game-main-exp.html');
 
             $("#instructions-header").attr("hidden", false);

@@ -189,6 +189,7 @@ async function endGame(advanceRound = false) {
     // const gameCanvas = document.getElementById('gameCanvas');
     // gameCanvas.style.display = 'none';
     // scoreCanvas.style.display = 'none';
+
     // console.log("Successfully Spawned Objects", spawnData);
     // console.log("Intercepted Targets", caughtTargets);  
     // console.log("Player Clicks Location", playerClicks);
@@ -207,7 +208,18 @@ async function endGame(advanceRound = false) {
 
     if (understandingCheckPassed){
         await runGameSequence("Passed the Comprehension Check. Moving on to the Integrity Pledge and Main Experiment");
+
         $('#comprehension-quiz-main-content').load('html/integrity-pledge.html');
+
+        // FOR EXPERIMENT 2
+        // $("#comprehension-quiz-header").attr("hidden", true);
+        // $("#comprehension-quiz-main-content").attr("hidden", true);
+
+        // $("#instructions-header").attr("hidden", false);
+        // $("#instructions-main-content").attr("hidden", false);
+        // // Load Instructions
+        // $('#instructions-main-content').load("html/instructions-AI.html");
+        
         // console.log("Moving on to the integrity pledge and then the full game");
     }
     else{
